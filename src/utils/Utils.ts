@@ -1,0 +1,161 @@
+import Matter from "matter-js";
+import { Config } from "../const/Config";
+
+// (충돌 이벤트 핸들러 설정 함수는 useEffect 내에서 오버라이드됨)
+// 기존에 생성된 세그먼트 집합을 특정 점 기준으로 회전
+export function rotateWallSegments(
+  walls: Matter.Body[],
+  cx: number,
+  cy: number,
+  angle: number
+) {
+  walls.forEach((wall) => {
+    const dx = wall.position.x - cx;
+    const dy = wall.position.y - cy;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const newX = cx + dx * cos - dy * sin;
+    const newY = cy + dx * sin + dy * cos;
+    Matter.Body.setPosition(wall, { x: newX, y: newY });
+    Matter.Body.rotate(wall, angle);
+  });
+} // 유틸리티 함수: 원 내부의 랜덤한 지점 생성
+export function randomPointInCircle(cx: number, cy: number, radius: number) {
+  const angle = Math.random() * 2 * Math.PI;
+  const r = radius * Math.sqrt(Math.random());
+  const x = cx + r * Math.cos(angle);
+  const y = cy + r * Math.sin(angle);
+  return { x, y };
+} // 공통 원형벽 생성 유틸리티 함수
+export function createCircularWallSegments({
+  cx,
+  cy,
+  radius,
+  count,
+  segmentLength = 40,
+  thickness = 20,
+  excludeStart = -1, // 제외할 시작 각도 (기본값: 제외 없음)
+  excludeEnd = -1, // 제외할 종료 각도 (기본값: 제외 없음)
+  fillStyle = "transparent",
+  strokeStyle = "#FF0000",
+  lineWidth = 2,
+  category = 0x0001,
+  mask = 0x0001,
+}: {
+  cx: number;
+  cy: number;
+  radius: number;
+  count: number;
+  segmentLength?: number;
+  thickness?: number;
+  excludeStart?: number;
+  excludeEnd?: number;
+  fillStyle?: string;
+  strokeStyle?: string;
+  lineWidth?: number;
+  category?: number;
+  mask?: number;
+}): Matter.Body[] {
+  const angleStep = (2 * Math.PI) / count;
+  const walls: Matter.Body[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const angle = i * angleStep;
+
+    // 제외 구간 확인 (excludeStart와 excludeEnd가 유효한 경우에만)
+    if (excludeStart >= 0 && excludeEnd >= 0) {
+      // 각도 정규화 (0 ~ 2π 범위로)
+      const normalizedAngle = angle % (2 * Math.PI);
+      const normalizedStart = excludeStart % (2 * Math.PI);
+      const normalizedEnd = excludeEnd % (2 * Math.PI);
+
+      // 구간 내에 있는지 확인 (시작이 종료보다 큰 경우도 처리)
+      if (normalizedStart <= normalizedEnd) {
+        if (
+          normalizedAngle >= normalizedStart &&
+          normalizedAngle <= normalizedEnd
+        ) {
+          continue; // 제외 구간에 있으면 건너뜀
+        }
+      } else {
+        // 경계를 넘어가는 제외 구간 (예: 350도 ~ 10도)
+        if (
+          normalizedAngle >= normalizedStart ||
+          normalizedAngle <= normalizedEnd
+        ) {
+          continue; // 제외 구간에 있으면 건너뜀
+        }
+      }
+    }
+
+    const x = cx + radius * Math.cos(angle);
+    const y = cy + radius * Math.sin(angle);
+    const wall = Matter.Bodies.rectangle(x, y, segmentLength, thickness, {
+      isStatic: true,
+      angle: angle + Math.PI / 2,
+      render: {
+        fillStyle,
+        strokeStyle,
+        lineWidth,
+      },
+      collisionFilter: { category, mask },
+    });
+    walls.push(wall);
+  }
+  return walls;
+}
+// 원형 벽 생성 함수
+
+export function createCircularWall(
+  cx: number,
+  cy: number,
+  radius: number,
+  count: number
+): Matter.Body[] {
+  const angleStep = (2 * Math.PI) / count;
+  const chordLength = 2 * radius * Math.sin(angleStep / 2);
+  const segmentLength = chordLength + 3;
+
+  // 12시 5분 위치에 출구 생성 (제외 구간 설정)
+  const exitAngle = Config.EXIT_ANGLE;
+  const exitAngleHalfWidth = angleStep * 1.5; // 제외 구간 너비의 절반
+  const excludeStart = exitAngle - exitAngleHalfWidth;
+  const excludeEnd = exitAngle + exitAngleHalfWidth;
+
+  return createCircularWallSegments({
+    cx,
+    cy,
+    radius,
+    count,
+    segmentLength,
+    thickness: 20,
+    excludeStart,
+    excludeEnd,
+  });
+} // 컨테이너 크기 계산 함수
+export function calculateContainerSize(input: {
+  width: number;
+  height: number;
+  minDimension: number;
+}) {
+  const { width, height, minDimension } = input;
+  const ballContainerSize = minDimension * 0.7; // Using 85% of the smaller dimension
+  const ballContainerRadius = ballContainerSize / 2;
+  const ballContainerX = width / 2;
+  const ballContainerY = height / 2;
+  const ballRadius = Math.max(10, Math.min(20, minDimension / 40)); // Adjust ball size based on container
+  const ringThickness = 10;
+  const innerWallRadius = ballContainerRadius - ringThickness / 2;
+  const spawnRadius = innerWallRadius - ballRadius;
+
+  return {
+    size: ballContainerSize,
+    radius: ballContainerRadius,
+    x: ballContainerX,
+    y: ballContainerY,
+    ballRadius,
+    ringThickness,
+    innerWallRadius,
+    spawnRadius,
+  };
+}

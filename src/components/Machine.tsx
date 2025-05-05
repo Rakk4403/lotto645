@@ -1,186 +1,309 @@
 import Matter from "matter-js";
-import { useEffect, useRef } from "react";
-
-function randomPointInCircle(cx: number, cy: number, radius: number) {
-  const angle = Math.random() * 2 * Math.PI;
-  const r = radius * Math.sqrt(Math.random());
-  const x = cx + r * Math.cos(angle);
-  const y = cy + r * Math.sin(angle);
-  return { x, y };
-}
-
-function createCircularWall(
-  cx: number,
-  cy: number,
-  radius: number,
-  count: number
-): Matter.Body[] {
-  const thickness = 20; // wall thickness
-  const angleStep = (2 * Math.PI) / count;
-  const chordLength = 2 * radius * Math.sin(angleStep / 2);
-  const segmentLength = chordLength + 3;
-  const exitAngle = (3 * Math.PI) / 2 + Math.PI / 18; // 12 o'clock shifted 5 degrees clockwise (12시 5분)
-  const skipAngle = angleStep * 1.5; // width of gap (~1.5 segments)
-  const walls: Matter.Body[] = [];
-
-  for (let i = 0; i < count; i++) {
-    const angle = i * angleStep;
-    if (Math.abs(angle - exitAngle) < skipAngle) {
-      continue; // skip this segment to create a gap at 12 o'clock
-    }
-    const x = cx + radius * Math.cos(angle);
-    const y = cy + radius * Math.sin(angle);
-    const wall = Matter.Bodies.rectangle(x, y, segmentLength, thickness, {
-      isStatic: true,
-      angle: angle + Math.PI / 2,
-      render: {
-        fillStyle: "transparent",
-        strokeStyle: "#FF0000",
-        lineWidth: 2,
-      },
-      collisionFilter: { category: 0x0001, mask: 0x0001 },
-    });
-    walls.push(wall);
-  }
-  return walls;
-}
+import { useEffect, useRef, useState } from "react";
+import { setupGuideWalls } from "./GuideWall";
+import { setupOpenExitSensor } from "./ExitOpenSensor";
+import { createContainer } from "./BallContainer";
+import { calculateContainerSize } from "../utils/Utils";
+import { setupExitAndSensor } from "./ExitCloseSensor";
+import { createBalls } from "./Balls";
+import { setupAntiStuck } from "./AntiStuck";
+import { initPhysicsEngine, cleanupPhysicsEngine } from "./Engine";
+import { setupWindEffect } from "./WindEffect";
+import { useReplayTracking } from "../hooks/useReplayTracking";
 
 export function Machine() {
   const sceneRef = useRef<HTMLDivElement>(null);
+  const [insideBalls, setInsideBalls] = useState<string[]>([]);
+  const [exitedBalls, setExitedBalls] = useState<string[]>([]);
+  const ballBodiesRef = useRef<Matter.Body[]>([]);
+  const exitBlockedRef = useRef<boolean>(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // 리플레이 관련 기능을 커스텀 hook으로 분리
+  const {
+    replayTarget,
+    setReplayTarget,
+    ballReplayMap,
+    recordBallPositions,
+    captureBallExit,
+    getAvailableReplays,
+    replayPath,
+  } = useReplayTracking();
 
   const { innerWidth, innerHeight } = window;
   const width = Math.min(innerWidth, 1200); // Adding a maximum width of 1200px
   const height = Math.min(innerHeight, 800); // Adding a maximum height of 800px
 
-  // Use the smaller dimension to ensure the container fits within the window
   const minDimension = Math.min(width, height);
 
+  // 리플레이 경로 렌더링을 위한 useEffect 추가
   useEffect(() => {
-    const Engine = Matter.Engine;
-    const Render = Matter.Render;
-    const Runner = Matter.Runner;
-    const Bodies = Matter.Bodies;
-    const Composite = Matter.Composite;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx || !canvasRef.current) return;
 
-    const engine = Engine.create();
-    engine.positionIterations = 12; // 기본 6 → 더 정밀한 위치 계산
-    engine.velocityIterations = 8; // 기본 4 → 충돌 후 반응 개선
+    // 캔버스 초기화
+    ctx.clearRect(0, 0, width, height);
 
-    const runner = Runner.create();
+    // 리플레이 경로가 없으면 렌더링하지 않음
+    if (!replayPath) return;
 
-    const render = Render.create({
-      element: sceneRef.current!,
-      engine,
-      options: {
-        width: width,
-        height: height,
-        wireframes: false,
-        background: "#ffffff",
-        showAxes: true,
-        showCollisions: true,
-        showPositions: true,
-        showBounds: true,
-      },
-    });
+    // 경로 렌더링
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(255, 0, 0, 0.7)";
+    ctx.lineWidth = 3;
 
-    // Calculate container size based on the smaller dimension with some padding
-    const ballContainerSize = minDimension * 0.85; // Using 85% of the smaller dimension
-    const ballContainerRadius = ballContainerSize / 2;
-    const ballContainerX = width / 2;
-    const ballContainerY = height / 2;
-
-    const walls = createCircularWall(
-      ballContainerX,
-      ballContainerY,
-      ballContainerRadius,
-      64
-    );
-    const compoundWall = Matter.Body.create({
-      parts: walls,
-      isStatic: true,
-      collisionFilter: { category: 0x0001, mask: 0x0001 },
-      render: {
-        fillStyle: "transparent",
-        strokeStyle: "#FF0000",
-        lineWidth: 2,
-      },
-    });
-
-    Composite.add(engine.world, compoundWall);
-
-    console.log(walls.length);
-    console.log(walls.flatMap((wall) => wall.vertices));
-    const ballRadius = Math.max(10, Math.min(20, minDimension / 40)); // Adjust ball size based on container
-    const ringThickness = 10;
-    const innerWallRadius = ballContainerRadius - ringThickness / 2;
-    const spawnRadius = innerWallRadius - ballRadius;
-    for (let i = 0; i < 45; i++) {
-      const { x, y } = randomPointInCircle(
-        ballContainerX,
-        ballContainerY,
-        spawnRadius
-      );
-      const ball = Bodies.circle(x, y, ballRadius, {
-        restitution: 0.9,
-        frictionAir: 0.02, // 공기 저항 → 최고 속도 제한
-        render: {
-          fillStyle: "#3498db",
-        },
-        collisionFilter: {
-          // group: -1,
-          category: 0x0001,
-          mask: 0x0001,
-        },
-      });
-      Composite.add(engine.world, ball);
+    for (let i = 0; i < replayPath.length; i++) {
+      const point = replayPath[i];
+      if (i === 0) {
+        ctx.moveTo(point.x, point.y);
+      } else {
+        ctx.lineTo(point.x, point.y);
+      }
     }
 
-    Render.run(render);
-    Runner.run(runner, engine);
+    ctx.stroke();
 
-    // Add wind force from bottom center (6 o'clock direction)
+    // 출발점과 종착점 강조
+    if (replayPath.length > 0) {
+      // 출발점
+      ctx.beginPath();
+      ctx.fillStyle = "blue";
+      ctx.arc(replayPath[0].x, replayPath[0].y, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 종착점
+      ctx.beginPath();
+      ctx.fillStyle = "green";
+      ctx.arc(
+        replayPath[replayPath.length - 1].x,
+        replayPath[replayPath.length - 1].y,
+        5,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+  }, [replayPath]); // width, height 제거
+
+  useEffect(() => {
+    if (!sceneRef.current) return;
+    const { engine, render, runner } = initPhysicsEngine({
+      sceneElem: sceneRef.current,
+      width,
+      height,
+    });
+    const containerConfig = calculateContainerSize({
+      width,
+      height,
+      minDimension,
+    });
+
+    createContainer(containerConfig, engine);
+
+    ballBodiesRef.current = createBalls(containerConfig, engine);
+
+    setInsideBalls(ballBodiesRef.current.map((b) => b.label));
+
+    exitBlockedRef.current = false;
+
+    Matter.Render.run(render);
+    Matter.Runner.run(runner, engine);
+
+    const stuckStartTimes: Record<string, number> = {};
+    const nudgedBalls = new Set<string>();
     Matter.Events.on(engine, "beforeUpdate", () => {
-      const Composite = Matter.Composite;
-      const bodies = Composite.allBodies(engine.world);
-      const windOrigin = {
-        x: ballContainerX,
-        y: ballContainerY + ballContainerRadius,
-      };
-      const maxDistance = ballContainerRadius; // Maximum distance for wind effect
-      for (const body of bodies) {
-        // Skip static bodies like walls and container
-        if (body.isStatic) continue;
+      setupWindEffect(engine, containerConfig);
+      // recordOnExit 대신 커스텀 훅의 메소드 사용
+      recordBallPositions(ballBodiesRef.current, containerConfig);
+      setupAntiStuck(
+        ballBodiesRef,
+        containerConfig,
+        stuckStartTimes,
+        nudgedBalls,
+        ballReplayMap
+      );
+    });
+    const exitConfig = setupExitAndSensor(containerConfig, engine);
 
-        const within6Clock =
-          body.position.x >= ballContainerX - ballContainerSize * 0.1 &&
-          body.position.x <= ballContainerX + ballContainerSize * 0.1 &&
-          body.position.y >= ballContainerY + ballContainerRadius - 40 &&
-          body.position.y <= ballContainerY + ballContainerRadius;
+    setupGuideWalls(containerConfig, exitConfig.exitAngle, engine);
 
-        const dx = body.position.x - windOrigin.x;
-        const dy = body.position.y - windOrigin.y;
-
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance < maxDistance && within6Clock) {
-          const strength = 1 - distance / maxDistance;
-          const forceMagnitude = strength * 0.22; // Adjust the force magnitude
-
-          Matter.Body.applyForce(body, body.position, {
-            x: Math.random() * forceMagnitude - forceMagnitude / 2, // random horizontal force
-            y: -forceMagnitude, // upward force
-          });
-        }
+    Matter.Events.on(engine, "collisionEnd", (event) => {
+      if (!exitBlockedRef.current) {
+        exitBlockedRef.current = handlePassExitCloseSensor(
+          event,
+          (ballBody) => {
+            // 공이 출구를 통과했을 때 상태 업데이트
+            setExitedBalls((prev) => [...prev, ballBody.label]);
+            setInsideBalls((prev) =>
+              prev.filter((label) => label !== ballBody.label)
+            );
+            // 리플레이 경로 캡처를 hook 메소드로 대체
+            captureBallExit(ballBody.label);
+          },
+          engine,
+          exitConfig
+        );
+      }
+    });
+    Matter.Events.on(engine, "collisionStart", (event) => {
+      if (exitBlockedRef.current) {
+        exitBlockedRef.current = handlePassExitOpenSensor(
+          event,
+          engine,
+          exitConfig
+        );
       }
     });
 
-    return () => {
-      Render.stop(render);
-      Runner.stop(runner);
-      render.canvas.remove();
-      render.textures = {};
+    // 출구 열기 센서 설정
+    setupOpenExitSensor(containerConfig, engine);
+
+    const handleResize = () => {
+      // const { innerWidth, innerHeight } = window;
     };
+
+    window.addEventListener("resize", handleResize);
+
+    // 클린업 함수
+    return () => {
+      cleanupPhysicsEngine(render, runner);
+      window.removeEventListener("resize", handleResize);
+    };
+
+    // --- end overrides
   }, [width, height, minDimension]);
 
-  return <div ref={sceneRef} />;
+  return (
+    <>
+      <div style={{ position: "relative", width: "100%", height: "100%" }}>
+        <div ref={sceneRef} />
+        <canvas
+          ref={canvasRef}
+          width={width}
+          height={height}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: width,
+            height: height,
+            pointerEvents: "none",
+            zIndex: 5,
+          }}
+        />
+      </div>
+      {/* Replay selection UI */}
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          backgroundColor: "rgba(240,240,240,0.95)",
+          padding: "8px",
+          zIndex: 11,
+        }}
+      >
+        <div>🎞️ 리플레이 보기:</div>
+        <select
+          value={replayTarget || ""}
+          onChange={(e) => setReplayTarget(e.target.value || null)}
+        >
+          <option value="">-- 선택 --</option>
+          {getAvailableReplays().map((label) => (
+            <option key={label} value={label}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
+      {/* Ball status UI */}
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          left: 10,
+          backgroundColor: "rgba(255,255,255,0.9)",
+          padding: "10px",
+          fontSize: "14px",
+          fontFamily: "monospace",
+          zIndex: 10,
+        }}
+      >
+        <div>
+          <strong>🟢 내부 공</strong>: {insideBalls.join(", ")}
+        </div>
+        <div>
+          <strong>🔴 탈출 공</strong>: {exitedBalls.join(", ")}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function handlePassExitOpenSensor(
+  event: Matter.IEventCollision<Matter.Engine>,
+  engine: Matter.Engine,
+  exitConfig: {
+    exitAngle: number;
+    exitWalls: Matter.Body[];
+  }
+) {
+  let exitBlocked = true;
+  for (const pair of event.pairs) {
+    const { bodyA, bodyB } = pair;
+    const sensorBody =
+      bodyA.label === "exitOpenSensor"
+        ? bodyA
+        : bodyB.label === "exitOpenSensor"
+        ? bodyB
+        : null;
+    const ballBody = sensorBody ? (sensorBody === bodyA ? bodyB : bodyA) : null;
+    if (sensorBody && ballBody && !ballBody.isStatic) {
+      console.log(`${ballBody.label}: 출구 통과 감지: 출구를 열 수 있습니다.`);
+      Matter.Composite.remove(engine.world, exitConfig.exitWalls);
+      exitBlocked = false;
+      break;
+    }
+  }
+  return exitBlocked;
+}
+
+function handlePassExitCloseSensor(
+  event: Matter.IEventCollision<Matter.Engine>,
+  onPassedBall: (ballBody: Matter.Body) => void,
+  engine: Matter.Engine,
+  exitConfig: {
+    exitAngle: number;
+    exitWalls: Matter.Body[];
+  }
+) {
+  let exitBlocked = false;
+  for (const pair of event.pairs) {
+    const { bodyA, bodyB } = pair;
+    const sensorBody =
+      bodyA.label === "exitSensor"
+        ? bodyA
+        : bodyB.label === "exitSensor"
+        ? bodyB
+        : null;
+    const ballBody = sensorBody ? (sensorBody === bodyA ? bodyB : bodyA) : null;
+
+    if (sensorBody && ballBody && !ballBody.isStatic) {
+      // 여기에서 공의 이동 방향을 확인
+      // 공이 센서의 윗면을 통과할 때에만 출구를 막음
+      const isOverUpperSide = ballBody.position.y < sensorBody.position.y - 10;
+      if (isOverUpperSide && ballBody.velocity.y < -1) {
+        // Ball exited: update states
+        onPassedBall(ballBody);
+        console.log(`${ballBody.label}: 출구 통과 감지: 출구를 막습니다.`);
+
+        Matter.Composite.add(engine.world, exitConfig.exitWalls);
+        exitBlocked = true;
+        break;
+      } else {
+        console.log(`${ballBody.label} 공이 아래로 떨어져서 무시합니다.`);
+      }
+    }
+  }
+  return exitBlocked;
 }

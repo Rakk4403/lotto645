@@ -9,10 +9,10 @@ function getRenderOptions(opt: {
     height: opt.height || window.innerHeight,
     wireframes: false,
     background: "#ffffff",
-    showAxes: true,
-    showCollisions: true,
-    showPositions: true,
-    showBounds: true,
+    showAxes: false, // 디버깅 옵션 비활성화
+    showCollisions: false, // 디버깅 옵션 비활성화
+    showPositions: false, // 디버깅 옵션 비활성화
+    showBounds: false, // 디버깅 옵션 비활성화
   };
 }
 // 클린업 함수

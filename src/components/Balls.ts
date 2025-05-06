@@ -19,7 +19,7 @@ export function createBalls(
   const Bodies = Matter.Bodies;
   const Composite = Matter.Composite;
   const maxSpeed = 500;
-  const balls: any[] = [];
+  const balls: Matter.Body[] = [];
 
   // 전역 이벤트 핸들러 등록 (공마다 등록하지 않고 한 번만 등록)
   Matter.Events.on(engine, "beforeUpdate", () => {
@@ -94,18 +94,18 @@ export function createBalls(
       containerConfig.spawnRadius
     );
 
-    // 각 공의 색상을 조금씩 다양하게 설정
-    const hue = (i * 8) % 360; // 색상값(hue) 분포
-    const ballColor = `hsl(${hue}, 70%, 50%)`; // HSL 색상 모델 사용
+    const hue = (i * 8) % 360;
+    const ballColor = `hsl(${hue}, 70%, 50%)`;
 
     const ball = Bodies.circle(x, y, containerConfig.ballRadius, {
       restitution: 0.9,
       frictionAir: 0.03,
       render: {
         fillStyle: ballColor,
-        // 공 자체에도 텍스트를 설정해봅니다 (대체 방법)
         sprite: {
           texture: createBallTexture(i + 1, containerConfig.ballRadius * 2),
+          xScale: 1,
+          yScale: 1,
         },
       },
       collisionFilter: {
@@ -138,6 +138,7 @@ function createBallTexture(number: number, size: number): string {
   const radius = size / 2;
   ctx.beginPath();
   ctx.arc(radius, radius, radius, 0, Math.PI * 2);
+  ctx.closePath();
 
   // 번호에 따른 색상 변경
   const hue = (number * 8) % 360;

@@ -45,7 +45,7 @@ export function useWindEffect(
 
         if (distance < maxDistance && within6Clock) {
           const strength = 1 - distance / maxDistance;
-          const forceMagnitude = strength * 0.5;
+          const forceMagnitude = strength * 0.7;
 
           Matter.Body.applyForce(body, body.position, {
             x: Math.random() * forceMagnitude - forceMagnitude / 2,

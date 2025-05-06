@@ -8,15 +8,16 @@ import { setupExitAndSensor } from "./ExitCloseSensor";
 import { createBalls } from "./Balls";
 import { setupAntiStuck } from "./AntiStuck";
 import { initPhysicsEngine, cleanupPhysicsEngine } from "./Engine";
-// import { setupWindEffect } from "./WindEffect";
 import { useWindEffect } from "../hooks/useWindEffect";
 import { useReplayTracking } from "../hooks/useReplayTracking";
 import { createBasket } from "./BallBasket";
+import { BallPopup } from "./BallPopup";
 
 export function Machine() {
   const sceneRef = useRef<HTMLDivElement>(null);
   const [insideBalls, setInsideBalls] = useState<string[]>([]);
   const [exitedBalls, setExitedBalls] = useState<string[]>([]);
+  const [showPopup, setShowPopup] = useState<boolean>(false);
   const ballBodiesRef = useRef<Matter.Body[]>([]);
   const exitBlockedRef = useRef<boolean>(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -65,6 +66,22 @@ export function Machine() {
   useEffect(() => {
     windControlRef.current = windControl;
   }, [windControl]);
+
+  // 모든 공이 뽑혔을 때 팝업 표시 효과
+  useEffect(() => {
+    if (exitedBalls.length === 7) {
+      // 모든 공이 뽑힌 후 약간의 딜레이를 두고 팝업 표시
+      const timer = setTimeout(() => {
+        setShowPopup(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [exitedBalls.length]);
+
+  // 팝업 닫기 기능
+  const closePopup = () => {
+    setShowPopup(false);
+  };
 
   // 리플레이 경로 렌더링을 위한 useEffect 추가
   useEffect(() => {
@@ -313,6 +330,8 @@ export function Machine() {
           <strong>🔴 탈출 공</strong>: {exitedBalls.join(", ")}
         </div>
       </div>
+      {/* Ball Popup */}
+      <BallPopup balls={drawnBalls} show={showPopup} onClose={closePopup} />
     </>
   );
 }

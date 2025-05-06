@@ -43,8 +43,7 @@ export function setupExitAndSensor(
   const exitWalls: Matter.Body[] = createExitWalls(
     containerConfig.x,
     containerConfig.y,
-    containerConfig.radius,
-    64
+    containerConfig.radius
   );
 
   return { exitAngle, exitWalls };

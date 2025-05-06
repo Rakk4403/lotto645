@@ -19,14 +19,58 @@ export function rotateWallSegments(
     Matter.Body.setPosition(wall, { x: newX, y: newY });
     Matter.Body.rotate(wall, angle);
   });
-} // 유틸리티 함수: 원 내부의 랜덤한 지점 생성
+}
+
+// 화면 진동 효과를 구현하는 함수
+export function shakeScreen(
+  element: HTMLElement,
+  intensity: number = 5,
+  duration: number = 500
+): Promise<void> {
+  return new Promise((resolve) => {
+    const originalStyle = element.style.transform;
+    const originalTransition = element.style.transition;
+
+    // 애니메이션 시작 시간
+    const startTime = Date.now();
+
+    // 진동 애니메이션 프레임
+    function animate() {
+      const elapsed = Date.now() - startTime;
+
+      if (elapsed < duration) {
+        // 진동 강도를 시간이 지남에 따라 줄이기
+        const currentIntensity = intensity * (1 - elapsed / duration);
+
+        // 랜덤한 오프셋 생성
+        const offsetX = (Math.random() - 0.5) * 2 * currentIntensity;
+        const offsetY = (Math.random() - 0.5) * 2 * currentIntensity;
+
+        // 요소 위치 이동
+        element.style.transform = `${originalStyle} translate(${offsetX}px, ${offsetY}px)`;
+
+        requestAnimationFrame(animate);
+      } else {
+        // 원래 위치로 복원
+        element.style.transform = originalStyle;
+        element.style.transition = originalTransition;
+        resolve();
+      }
+    }
+
+    requestAnimationFrame(animate);
+  });
+}
+
+// 유틸리티 함수: 원 내부의 랜덤한 지점 생성
 export function randomPointInCircle(cx: number, cy: number, radius: number) {
   const angle = Math.random() * 2 * Math.PI;
   const r = radius * Math.sqrt(Math.random());
   const x = cx + r * Math.cos(angle);
   const y = cy + r * Math.sin(angle);
   return { x, y };
-} // 공통 원형벽 생성 유틸리티 함수
+}
+// 공통 원형벽 생성 유틸리티 함수
 export function createCircularWallSegments({
   cx,
   cy,

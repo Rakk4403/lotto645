@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { setupGuideWalls } from "./GuideWall";
 import { setupOpenExitSensor } from "./ExitOpenSensor";
 import { createContainer } from "./BallContainer";
-import { calculateContainerSize } from "../utils/Utils";
+import { calculateContainerSize, shakeScreen } from "../utils/Utils";
 import { setupExitAndSensor } from "./ExitCloseSensor";
 import { createBalls } from "./Balls";
 import { setupAntiStuck } from "./AntiStuck";
@@ -12,6 +12,7 @@ import { useWindEffect } from "../hooks/useWindEffect";
 import { useReplayTracking } from "../hooks/useReplayTracking";
 import { createBasket } from "./BallBasket";
 import { BallPopup } from "./BallPopup";
+import { openExitDoors, closeExitDoors } from "./ExitWall";
 
 /**
  * 공 번호에 따라 색상을 생성하는 함수
@@ -41,6 +42,7 @@ export function Machine() {
     innerWallRadius: number;
     spawnRadius: number;
   } | null>(null);
+  const isShakingRef = useRef<boolean>(false);
 
   // 리플레이 관련 기능을 커스텀 hook으로 분리
   const {
@@ -195,7 +197,6 @@ export function Machine() {
       if (!exitBlockedRef.current) {
         exitBlockedRef.current = handlePassExitCloseSensor(
           event,
-          // Removed onPassedBall call here
           engine,
           exitConfig,
           exitedBalls
@@ -204,7 +205,8 @@ export function Machine() {
     });
     Matter.Events.on(engine, "collisionStart", (event) => {
       if (exitBlockedRef.current) {
-        exitBlockedRef.current = handlePassExitOpenSensor(
+        // exitBlockedRef.current =
+        handlePassExitOpenSensor(
           event,
           (ballBody) => {
             setExitedBalls((prev) => [...prev, ballBody.label]);
@@ -252,6 +254,47 @@ export function Machine() {
       windControlRef.current.startWind();
     }
   }, [exitedBalls]);
+
+  useEffect(() => {
+    // 키보드 이벤트 핸들러
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // 스페이스바를 누르면 화면 진동 효과 실행
+      if (event.code === "Space" && !isShakingRef.current) {
+        isShakingRef.current = true;
+
+        // 전체 화면 진동 (container가 포함된 scene 요소)
+        if (sceneRef.current) {
+          // 진동 강도를 8에서 4로 줄이고 지속 시간도 300ms에서 150ms로 줄임
+          shakeScreen(sceneRef.current, 2, 150).then(() => {
+            isShakingRef.current = false;
+          });
+
+          // 공들에게도 힘을 가해 흔들리는 효과 추가 (선택적)
+          if (engineRef.current && ballBodiesRef.current.length > 0) {
+            ballBodiesRef.current.forEach((ball) => {
+              // 공에 가해지는 힘도 줄임 (0.03에서 0.015로)
+              const forceMagnitude = 0.015 * ball.mass;
+              const forceX = (Math.random() - 0.5) * forceMagnitude;
+              const forceY = (Math.random() - 0.5) * forceMagnitude;
+
+              Matter.Body.applyForce(ball, ball.position, {
+                x: forceX,
+                y: forceY,
+              });
+            });
+          }
+        }
+      }
+    };
+
+    // 이벤트 리스너 등록
+    window.addEventListener("keydown", handleKeyDown);
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []); // 빈 배열을 전달하여 컴포넌트 마운트/언마운트 시에만 실행
 
   return (
     <>
@@ -408,7 +451,10 @@ function handlePassExitOpenSensor(
     const ballBody = sensorBody ? (sensorBody === bodyA ? bodyB : bodyA) : null;
     if (sensorBody && ballBody && !ballBody.isStatic) {
       console.log(`${ballBody.label}: 출구 통과 감지: 출구를 열 수 있습니다.`);
-      Matter.Composite.remove(engine.world, exitConfig.exitWalls);
+
+      // 출구 슬라이딩 도어 열기 애니메이션
+      openExitDoors(exitConfig.exitWalls, 300);
+
       if (!exitedBalls.includes(ballBody.label)) {
         onPassedBall(ballBody);
       }
@@ -445,11 +491,11 @@ function handlePassExitCloseSensor(
       const isOverUpperSide = ballBody.position.y < sensorBody.position.y - 10;
       if (isOverUpperSide && ballBody.velocity.y < -1) {
         if (exitedBalls.length >= 7) return false;
-        // Ball exited: update states
-        // onPassedBall removed here
         console.log(`${ballBody.label}: 출구 통과 감지: 출구를 막습니다.`);
 
-        Matter.Composite.add(engine.world, exitConfig.exitWalls);
+        // Matter.Composite.add를 제거하고 출구 슬라이딩 도어 닫기 애니메이션으로 대체
+        closeExitDoors(exitConfig.exitWalls, 300);
+
         exitBlocked = true;
         break;
       } else {

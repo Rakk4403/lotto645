@@ -7,6 +7,18 @@ interface BallPopupProps {
 }
 
 /**
+ * 공 번호에 따라 색상을 생성하는 함수
+ */
+const getBallColor = (ballNumber: string) => {
+  const number = parseInt(ballNumber, 10);
+  const hue = (number * 8) % 360;
+  return {
+    backgroundColor: `hsl(${hue}, 70%, 50%)`,
+    borderColor: `hsl(${hue}, 80%, 30%)`,
+  };
+};
+
+/**
  * 뽑힌 공을 팝업으로 보여주는 컴포넌트
  */
 export const BallPopup: React.FC<BallPopupProps> = ({
@@ -15,6 +27,12 @@ export const BallPopup: React.FC<BallPopupProps> = ({
   onClose,
 }) => {
   if (!show) return null;
+
+  // 보너스 공을 제외한 나머지 공 정렬 (숫자 기준 오름차순)
+  const mainBalls = [...balls.slice(0, 6)].sort(
+    (a, b) => parseInt(a) - parseInt(b)
+  );
+  const bonusBall = balls.length > 6 ? balls[6] : null;
 
   return (
     <div
@@ -54,30 +72,35 @@ export const BallPopup: React.FC<BallPopupProps> = ({
             gap: "15px",
           }}
         >
-          {balls.slice(0, 6).map((ball, index) => (
-            <div
-              key={`popup-${ball}`}
-              style={{
-                width: "70px",
-                height: "70px",
-                borderRadius: "50%",
-                backgroundColor: "#f2f2f2",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                fontSize: "24px",
-                fontWeight: "bold",
-                border: "3px solid #888",
-                boxShadow: "0 3px 6px rgba(0,0,0,0.2)",
-                animation: `popIn 0.5s ease-out ${index * 0.3}s both`,
-              }}
-            >
-              {ball}
-            </div>
-          ))}
+          {mainBalls.map((ball, index) => {
+            const ballColor = getBallColor(ball);
+            return (
+              <div
+                key={`popup-${ball}`}
+                style={{
+                  width: "70px",
+                  height: "70px",
+                  borderRadius: "50%",
+                  backgroundColor: ballColor.backgroundColor,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  fontSize: "24px",
+                  fontWeight: "bold",
+                  border: `3px solid ${ballColor.borderColor}`,
+                  boxShadow: "0 3px 6px rgba(0,0,0,0.2)",
+                  animation: `popIn 0.5s ease-out ${index * 0.3}s both`,
+                  color: "#FFFFFF",
+                  textShadow: "1px 1px 2px rgba(0,0,0,0.5)",
+                }}
+              >
+                {ball}
+              </div>
+            );
+          })}
         </div>
 
-        {balls.length > 6 && (
+        {bonusBall && (
           <div
             style={{
               marginTop: "20px",
@@ -94,18 +117,20 @@ export const BallPopup: React.FC<BallPopupProps> = ({
                 width: "70px",
                 height: "70px",
                 borderRadius: "50%",
-                backgroundColor: "#e8f4ff",
+                backgroundColor: getBallColor(bonusBall).backgroundColor,
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
                 fontSize: "24px",
                 fontWeight: "bold",
-                border: "3px solid #2a7aef",
+                border: `3px solid ${getBallColor(bonusBall).borderColor}`,
                 boxShadow: "0 3px 6px rgba(0,0,0,0.2)",
                 animation: "popIn 0.5s ease-out 2s both",
+                color: "#FFFFFF",
+                textShadow: "1px 1px 2px rgba(0,0,0,0.5)",
               }}
             >
-              {balls[6]}
+              {bonusBall}
             </div>
           </div>
         )}

@@ -13,6 +13,15 @@ import { useReplayTracking } from "../hooks/useReplayTracking";
 import { createBasket } from "./BallBasket";
 import { BallPopup } from "./BallPopup";
 
+/**
+ * 공 번호에 따라 색상을 생성하는 함수
+ */
+const getBallColor = (ballNumber: string) => {
+  const number = parseInt(ballNumber, 10);
+  const hue = (number * 8) % 360;
+  return `hsl(${hue}, 70%, 50%)`;
+};
+
 export function Machine() {
   const sceneRef = useRef<HTMLDivElement>(null);
   const [insideBalls, setInsideBalls] = useState<string[]>([]);
@@ -52,7 +61,10 @@ export function Machine() {
 
   // Define drawnBalls, mainBalls, bonusBall
   const drawnBalls = [...exitedBalls];
-  const mainBalls = drawnBalls.slice(0, 6);
+  // 정렬된 메인 볼 (보너스 번호 제외)
+  const mainBalls = [...drawnBalls.slice(0, 6)].sort(
+    (a, b) => parseInt(a) - parseInt(b)
+  );
   const bonusBall = drawnBalls.length > 6 ? drawnBalls[6] : null;
 
   // Wind effect hook - React 훅 규칙에 맞게 최상위에서 호출
@@ -255,17 +267,53 @@ export function Machine() {
           fontWeight: "bold",
           fontFamily: "monospace",
           zIndex: 12,
+          borderRadius: "8px",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
         }}
       >
         <div>
           🎱 번호 추첨 결과:&nbsp;
           {mainBalls.map((label) => (
-            <span key={label} style={{ marginRight: 8 }}>
+            <span
+              key={label}
+              style={{
+                display: "inline-block",
+                margin: "0 4px",
+                padding: "4px 8px",
+                borderRadius: "50%",
+                backgroundColor: getBallColor(label),
+                color: "white",
+                textShadow: "1px 1px 1px rgba(0,0,0,0.5)",
+                width: "24px",
+                height: "24px",
+                lineHeight: "24px",
+                textAlign: "center",
+              }}
+            >
               {label}
             </span>
           ))}
           {bonusBall && (
-            <span style={{ color: "blue" }}>+ {bonusBall} (보너스)</span>
+            <span style={{ marginLeft: "10px" }}>
+              +{" "}
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "4px 8px",
+                  borderRadius: "50%",
+                  backgroundColor: getBallColor(bonusBall),
+                  color: "white",
+                  textShadow: "1px 1px 1px rgba(0,0,0,0.5)",
+                  width: "24px",
+                  height: "24px",
+                  lineHeight: "24px",
+                  textAlign: "center",
+                }}
+              >
+                {bonusBall}
+              </span>{" "}
+              (보너스)
+            </span>
           )}
         </div>
       </div>
@@ -295,6 +343,7 @@ export function Machine() {
           backgroundColor: "rgba(240,240,240,0.95)",
           padding: "8px",
           zIndex: 11,
+          borderRadius: "8px",
         }}
       >
         <div>🎞️ 리플레이 보기:</div>
@@ -321,6 +370,7 @@ export function Machine() {
           fontSize: "14px",
           fontFamily: "monospace",
           zIndex: 10,
+          borderRadius: "8px",
         }}
       >
         <div>

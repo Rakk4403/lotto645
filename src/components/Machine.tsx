@@ -1,10 +1,9 @@
 import Matter from "matter-js";
 import { useEffect, useRef, useState } from "react";
 import { setupGuideWalls } from "./GuideWall";
-import { setupOpenExitSensor } from "./ExitOpenSensor";
 import { createContainer } from "./BallContainer";
 import { calculateContainerSize, shakeScreen } from "../utils/Utils";
-import { setupExitAndSensor } from "./ExitCloseSensor";
+import { setupBasketSensor } from "./BasketSensor";
 import { createBalls } from "./Balls";
 import { setupAntiStuck } from "./AntiStuck";
 import { initPhysicsEngine, cleanupPhysicsEngine } from "./Engine";
@@ -13,6 +12,7 @@ import { useReplayTracking } from "../hooks/useReplayTracking";
 import { createBasket } from "./BallBasket";
 import { BallPopup } from "./BallPopup";
 import { openExitDoors, closeExitDoors } from "./ExitWall";
+import { Config } from "../const/Config";
 
 /**
  * 공 번호에 따라 색상을 생성하는 함수
@@ -29,7 +29,6 @@ export function Machine() {
   const [exitedBalls, setExitedBalls] = useState<string[]>([]);
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const ballBodiesRef = useRef<Matter.Body[]>([]);
-  const exitBlockedRef = useRef<boolean>(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Matter.Engine | null>(null);
   const containerConfigRef = useRef<{
@@ -167,8 +166,6 @@ export function Machine() {
 
     setInsideBalls(ballBodiesRef.current.map((b) => b.label));
 
-    exitBlockedRef.current = false;
-
     Matter.Render.run(render);
     Matter.Runner.run(runner, engine);
 
@@ -186,10 +183,22 @@ export function Machine() {
         ballReplayMap
       );
     });
-    const exitConfig = setupExitAndSensor(containerConfig, engine);
 
-    setupGuideWalls(containerConfig, exitConfig.exitAngle, engine);
+    // 바구니 및 센서 설정
+    setupBasketSensor(
+      {
+        x: containerConfig.x + containerConfig.radius,
+        y: containerConfig.y + containerConfig.radius - 30,
+        width: 200,
+        height: 30,
+      },
+      engine
+    );
 
+    // 가이드 벽 설정
+    setupGuideWalls(containerConfig, Config.EXIT_ANGLE, engine);
+
+    // 바구니 생성
     const basketWidth = 200;
     const basketHeight = 30;
     const basketX = containerConfig.x + containerConfig.radius;
@@ -197,37 +206,22 @@ export function Machine() {
     const basket = createBasket(basketX, basketY, basketWidth, basketHeight);
     Matter.Composite.add(engine.world, basket);
 
-    Matter.Events.on(engine, "collisionEnd", (event) => {
-      if (!exitBlockedRef.current) {
-        exitBlockedRef.current = handlePassExitCloseSensor(
-          event,
-          engine,
-          exitConfig,
-          exitedBalls
-        );
-      }
-    });
+    // 바구니 충돌 감지 설정
     Matter.Events.on(engine, "collisionStart", (event) => {
-      if (exitBlockedRef.current) {
-        // exitBlockedRef.current =
-        handlePassExitOpenSensor(
-          event,
-          (ballBody) => {
-            setExitedBalls((prev) => [...prev, ballBody.label]);
-            setInsideBalls((prev) =>
-              prev.filter((label) => label !== ballBody.label)
-            );
-            captureBallExit(ballBody.label);
-          },
-          engine,
-          exitConfig,
-          exitedBalls
-        );
-      }
+      handlePassBasketSensor(
+        event,
+        engine,
+        (ballBody) => {
+          // 공이 바구니에 들어갔을 때 처리
+          setExitedBalls((prev) => [...prev, ballBody.label]);
+          setInsideBalls((prev) =>
+            prev.filter((label) => label !== ballBody.label)
+          );
+          captureBallExit(ballBody.label);
+        },
+        exitedBalls
+      );
     });
-
-    // 출구 열기 센서 설정
-    setupOpenExitSensor(containerConfig, engine);
 
     const handleResize = () => {
       // const { innerWidth, innerHeight } = window;
@@ -240,8 +234,6 @@ export function Machine() {
       cleanupPhysicsEngine(render, runner);
       window.removeEventListener("resize", handleResize);
     };
-
-    // --- end overrides
   }, [width, height, minDimension]);
 
   // Wind effect toggle based on exitedBalls
@@ -508,4 +500,37 @@ function handlePassExitCloseSensor(
     }
   }
   return exitBlocked;
+}
+
+function handlePassBasketSensor(
+  event: Matter.IEventCollision<Matter.Engine>,
+  engine: Matter.Engine,
+  onBallInBasket: (ballBody: Matter.Body) => void,
+  exitedBalls: string[]
+) {
+  for (const pair of event.pairs) {
+    const { bodyA, bodyB } = pair;
+    const sensorBody =
+      bodyA.label === "basketSensor"
+        ? bodyA
+        : bodyB.label === "basketSensor"
+        ? bodyB
+        : null;
+    const ballBody = sensorBody ? (sensorBody === bodyA ? bodyB : bodyA) : null;
+
+    if (sensorBody && ballBody && !ballBody.isStatic) {
+      // 이미 처리된 공 스킵
+      if (exitedBalls.includes(ballBody.label)) continue;
+
+      // 공이 바구니에 들어왔을 때만 처리 (위에서 아래로 떨어지는 방향)
+      if (ballBody.velocity.y > 0) {
+        console.log(`${ballBody.label} 공이 바구니에 들어왔습니다.`);
+
+        // 공을 선택된 목록에 추가
+        onBallInBasket(ballBody);
+        return true;
+      }
+    }
+  }
+  return false;
 }

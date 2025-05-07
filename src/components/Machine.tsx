@@ -190,7 +190,11 @@ export function Machine() {
 
     setupGuideWalls(containerConfig, exitConfig.exitAngle, engine);
 
-    const basket = createBasket(width / 2, height - 30, 660, 60);
+    const basketWidth = 200;
+    const basketHeight = 30;
+    const basketX = containerConfig.x + containerConfig.radius;
+    const basketY = containerConfig.y + containerConfig.radius;
+    const basket = createBasket(basketX, basketY, basketWidth, basketHeight);
     Matter.Composite.add(engine.world, basket);
 
     Matter.Events.on(engine, "collisionEnd", (event) => {

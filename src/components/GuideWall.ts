@@ -2,6 +2,15 @@ import Matter from "matter-js";
 
 import { rotateWallSegments } from "../utils/Utils";
 
+const guideWallConfig = {
+  wallLength: 30, // 가이드 벽 길이
+  wallThickness: 10, // 가이드 벽 두께
+  wallColor: "rgba(200, 200, 200, 1)", // 가이드 벽 색상
+  wallOpacity: 0.5, // 가이드 벽 불투명도
+  wallCategory: 0x0001, // 가이드 벽 카테고리
+  wallMask: 0x0001, // 가이드 벽 마스크
+};
+
 // 가이드 벽 생성 함수
 export function createGuideWalls(
   cx: number,
@@ -52,17 +61,17 @@ export function createGuideWalls(
     const guideWall = Matter.Bodies.rectangle(
       guideX,
       guideY,
-      30, // guide segment length
-      10, // guide segment thickness
+      guideWallConfig.wallLength, // guide segment length
+      guideWallConfig.wallThickness, // guide segment thickness
       {
         isStatic: true,
         angle: arcAngle + semicircleRotation + Math.PI / 2, // 각도 보정
         render: {
-          fillStyle: "#888",
+          fillStyle: guideWallConfig.wallColor,
         },
         collisionFilter: {
-          category: 0x0001,
-          mask: 0x0001,
+          category: guideWallConfig.wallCategory, // updated to use config
+          mask: guideWallConfig.wallMask, // updated to use config
         },
       }
     );
@@ -80,17 +89,17 @@ export function createGuideWalls(
     const guideWall = Matter.Bodies.rectangle(
       guideX,
       guideY,
-      30, // guide segment length
-      10, // guide segment thickness
+      guideWallConfig.wallLength,
+      guideWallConfig.wallThickness,
       {
         isStatic: true,
         angle: currentAngle + Math.PI / 2,
         render: {
-          fillStyle: "#888",
+          fillStyle: guideWallConfig.wallColor,
         },
         collisionFilter: {
-          category: 0x0001,
-          mask: 0x0001,
+          category: guideWallConfig.wallCategory,
+          mask: guideWallConfig.wallMask,
         },
       }
     );

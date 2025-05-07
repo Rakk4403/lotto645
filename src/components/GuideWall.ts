@@ -17,19 +17,37 @@ export function createGuideWalls(
   let currentAngle = exitAngle + Math.PI / 12 + stepAngle; // start from 12 o'clock
 
   // 반원형 가이드 벽 추가 (12시 방향)
-  const semicircleRadius = 100; // 반원의 반지름
-  const semicircleSegments = 12; // 반원을 구성하는 선분 수
-  const semicircleStep = Math.PI / semicircleSegments; // 반원은 180도(π 라디안)
+  const semicircleRadius = 100;
+  // 반원 각도를 증가시켜서 더 넓게 커버 (180도보다 더 넓은 각도로 확장)
+  const semicircleSegments = 16;
+  // 약 200도 정도로 반원을 확장 (π + π*0.1)
+  const semicircleAngleRange = Math.PI + Math.PI * 0.1;
+  const semicircleStep = semicircleAngleRange / semicircleSegments;
+  const semicircleRotation = Math.PI * 0.08;
+
+  const semicircleCenterX = cx;
+  // y 위치를 조금 높여서 컨테이너와 닿게 함
+  const semicircleCenterY = cy - containerRadius - guideOffset + 10;
 
   // 반원 가이드 벽 생성 (왼쪽에서 오른쪽으로)
   for (let i = 0; i <= semicircleSegments; i++) {
-    const arcAngle = Math.PI + i * semicircleStep; // π(왼쪽) ~ 2π(오른쪽)
-    const guideX = cx + semicircleRadius * Math.cos(arcAngle);
-    const guideY =
-      cy -
-      containerRadius -
-      guideOffset +
-      semicircleRadius * Math.sin(arcAngle);
+    // 시작 각도를 π - 0.2π로 설정하여 왼쪽으로 더 확장
+    const arcAngle = Math.PI - Math.PI * 0.2 + i * semicircleStep;
+
+    // 반원 중심점을 기준으로 회전된 좌표 계산
+    const baseX = semicircleRadius * Math.cos(arcAngle);
+    const baseY = semicircleRadius * Math.sin(arcAngle);
+
+    // 회전 변환 적용
+    const rotatedX =
+      baseX * Math.cos(semicircleRotation) -
+      baseY * Math.sin(semicircleRotation);
+    const rotatedY =
+      baseX * Math.sin(semicircleRotation) +
+      baseY * Math.cos(semicircleRotation);
+
+    const guideX = semicircleCenterX + rotatedX;
+    const guideY = semicircleCenterY + rotatedY;
 
     const guideWall = Matter.Bodies.rectangle(
       guideX,
@@ -38,7 +56,7 @@ export function createGuideWalls(
       10, // guide segment thickness
       {
         isStatic: true,
-        angle: arcAngle + Math.PI / 2,
+        angle: arcAngle + semicircleRotation + Math.PI / 2, // 각도 보정
         render: {
           fillStyle: "#888",
         },
@@ -110,27 +128,4 @@ export function setupGuideWalls(
   );
 
   Matter.Composite.add(engine.world, guideWalls);
-
-  // 왼쪽 차단벽 생성
-  const leftBlockWall = Matter.Bodies.rectangle(
-    containerConfig.x +
-      (containerConfig.radius - 10) * Math.cos((3 * Math.PI) / 2),
-    containerConfig.y +
-      (containerConfig.radius + 20) * Math.sin((3 * Math.PI) / 2),
-    10, // width of wall
-    60, // height of wall
-    {
-      isStatic: true,
-      angle: (3 * Math.PI) / 2 + Math.PI / 2, // vertical wall
-      render: {
-        fillStyle: "#555",
-      },
-      collisionFilter: {
-        category: 0x0001,
-        mask: 0x0001,
-      },
-    }
-  );
-
-  Matter.Composite.add(engine.world, leftBlockWall);
 }

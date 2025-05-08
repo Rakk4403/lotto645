@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { setupGuideWalls } from "./GuideWall";
 import { createContainer } from "./BallContainer";
 import { calculateContainerSize, shakeScreen } from "../utils/Utils";
-import { setupBasketSensor } from "./BasketSensor";
+import { createBasketSensor, BasketSensorConfig } from "./BasketSensor";
 import { createBalls } from "./Balls";
 import { setupAntiStuck } from "./AntiStuck";
 import { initPhysicsEngine, cleanupPhysicsEngine } from "./Engine";
@@ -11,6 +11,7 @@ import { useWindEffect } from "../hooks/useWindEffect";
 import { createBasket } from "./BallBasket";
 import { BallPopup } from "./BallPopup";
 import { Config } from "../const/Config";
+import { useBasketSensor } from "../hooks/useBasketSensor";
 
 /**
  * 공 번호에 따라 색상을 생성하는 함수
@@ -39,6 +40,7 @@ export function Machine() {
     spawnRadius: number;
   } | null>(null);
   const isShakingRef = useRef<boolean>(false);
+  const basketSensorRef = useRef<Matter.Body | null>(null);
 
   const { innerWidth, innerHeight } = window;
   const width = Math.min(innerWidth, 1200); // Adding a maximum width of 1200px
@@ -60,6 +62,15 @@ export function Machine() {
     containerConfigRef.current
   );
   const windControlRef = useRef(windControl);
+
+  // 바구니 센서 훅 사용 - 센서 객체 참조를 전달
+  const basketSensor = useBasketSensor(basketSensorRef.current);
+  const basketSensorHandlerRef = useRef(basketSensor);
+
+  // basketSensorHandlerRef를 항상 최신 상태로 유지 (새로운 useEffect로 분리)
+  useEffect(() => {
+    basketSensorHandlerRef.current = basketSensor;
+  }, [basketSensor]);
 
   // windControlRef를 항상 최신 상태로 유지
   useEffect(() => {
@@ -119,16 +130,15 @@ export function Machine() {
       );
     });
 
-    // 바구니 및 센서 설정
-    setupBasketSensor(
-      {
-        x: containerConfig.x + containerConfig.radius,
-        y: containerConfig.y + containerConfig.radius - 30,
-        width: 200,
-        height: 30,
-      },
-      engine
-    );
+    // 바구니 센서 생성 및 설정
+    const sensorConfig: BasketSensorConfig = {
+      x: containerConfig.x + containerConfig.radius,
+      y: containerConfig.y + containerConfig.radius - 30,
+      width: 200,
+      height: 30,
+    };
+    // 센서 생성 및 참조 저장
+    basketSensorRef.current = createBasketSensor(sensorConfig, engine);
 
     // 가이드 벽 설정
     setupGuideWalls(containerConfig, Config.EXIT_ANGLE, engine);
@@ -143,18 +153,14 @@ export function Machine() {
 
     // 바구니 충돌 감지 설정
     Matter.Events.on(engine, "collisionStart", (event) => {
-      handlePassBasketSensor(
-        event,
-        engine,
-        (ballBody) => {
-          // 공이 바구니에 들어갔을 때 처리
-          setExitedBalls((prev) => [...prev, ballBody.label]);
-          setInsideBalls((prev) =>
-            prev.filter((label) => label !== ballBody.label)
-          );
-        },
-        exitedBalls
-      );
+      // 항상 최신 핸들러 참조를 사용
+      basketSensorHandlerRef.current.handleCollision(event, (ballBody) => {
+        // 공이 바구니에 들어갔을 때 처리
+        setExitedBalls((prev) => [...prev, ballBody.label]);
+        setInsideBalls((prev) =>
+          prev.filter((label) => label !== ballBody.label)
+        );
+      });
     });
 
     const handleResize = () => {
@@ -168,7 +174,7 @@ export function Machine() {
       cleanupPhysicsEngine(render, runner);
       window.removeEventListener("resize", handleResize);
     };
-  }, [width, height, minDimension]);
+  }, [width, height, minDimension]); // basketSensor 의존성 제거
 
   // Wind effect toggle based on exitedBalls
   useEffect(() => {
@@ -317,37 +323,4 @@ export function Machine() {
       <BallPopup balls={drawnBalls} show={showPopup} onClose={closePopup} />
     </>
   );
-}
-
-function handlePassBasketSensor(
-  event: Matter.IEventCollision<Matter.Engine>,
-  engine: Matter.Engine,
-  onBallInBasket: (ballBody: Matter.Body) => void,
-  exitedBalls: string[]
-) {
-  for (const pair of event.pairs) {
-    const { bodyA, bodyB } = pair;
-    const sensorBody =
-      bodyA.label === "basketSensor"
-        ? bodyA
-        : bodyB.label === "basketSensor"
-        ? bodyB
-        : null;
-    const ballBody = sensorBody ? (sensorBody === bodyA ? bodyB : bodyA) : null;
-
-    if (sensorBody && ballBody && !ballBody.isStatic) {
-      // 이미 처리된 공 스킵
-      if (exitedBalls.includes(ballBody.label)) continue;
-
-      // 공이 바구니에 들어왔을 때만 처리 (위에서 아래로 떨어지는 방향)
-      if (ballBody.velocity.y > 0) {
-        console.log(`${ballBody.label} 공이 바구니에 들어왔습니다.`);
-
-        // 공을 선택된 목록에 추가
-        onBallInBasket(ballBody);
-        return true;
-      }
-    }
-  }
-  return false;
 }

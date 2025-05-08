@@ -1,6 +1,4 @@
-// filepath: /Users/rakk/workspace/lottery/src/components/BasketSensor.ts
 import Matter from "matter-js";
-import { Config } from "../const/Config";
 
 // 바구니 센서 설정 함수
 export function setupBasketSensor(

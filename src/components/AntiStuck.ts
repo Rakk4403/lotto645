@@ -1,6 +1,5 @@
 import Matter from "matter-js";
 import React from "react";
-import { RecordMap } from "../types/RecordMap";
 
 export function setupAntiStuck(
   ballBodiesRef: React.RefObject<Matter.Body[]>,
@@ -15,8 +14,7 @@ export function setupAntiStuck(
     spawnRadius: number;
   },
   stuckStartTimes: Record<string, number>,
-  nudgedBalls: Set<string>,
-  ballReplayMap: React.RefObject<RecordMap>
+  nudgedBalls: Set<string>
 ) {
   const now = Date.now();
   for (const ball of ballBodiesRef.current) {
@@ -37,13 +35,6 @@ export function setupAntiStuck(
             `${ball.label} 공이 너무 오랫동안 정지 상태입니다. 힘을 가합니다.`
           );
 
-          // --- Capture replay path
-          ballReplayMap.current[ball.label].push({
-            x: ball.position.x,
-            y: ball.position.y,
-            time: now,
-          });
-          // ---
           // Mark as nudged
           stuckStartTimes[ball.label] = now; // Reset stuck time
           nudgedBalls.add(ball.label);

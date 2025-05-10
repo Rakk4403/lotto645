@@ -41,6 +41,8 @@ export function Machine() {
   } | null>(null);
   const isShakingRef = useRef<boolean>(false);
   const basketSensorRef = useRef<Matter.Body | null>(null);
+  const renderRef = useRef<Matter.Render | null>(null);
+  const runnerRef = useRef<Matter.Runner | null>(null);
 
   const { innerWidth, innerHeight } = window;
   const width = Math.min(innerWidth, 1200); // Adding a maximum width of 1200px
@@ -93,14 +95,27 @@ export function Machine() {
     setShowPopup(false);
   };
 
-  useEffect(() => {
+  // 게임 초기화 함수
+  const initializeGame = () => {
     if (!sceneRef.current) return;
+
+    // 이전 물리 엔진 정리
+    if (renderRef.current && runnerRef.current) {
+      cleanupPhysicsEngine(renderRef.current, runnerRef.current);
+    }
+
+    // 새로운 물리 엔진 초기화
     const { engine, render, runner } = initPhysicsEngine({
       sceneElem: sceneRef.current,
       width,
       height,
     });
+    
+    // 참조 업데이트
     engineRef.current = engine;
+    renderRef.current = render;
+    runnerRef.current = runner;
+
     const containerConfig = calculateContainerSize({
       width,
       height,
@@ -110,8 +125,8 @@ export function Machine() {
 
     createContainer(containerConfig, engine);
 
+    // 공 생성 및 상태 업데이트
     ballBodiesRef.current = createBalls(containerConfig, engine);
-
     setInsideBalls(ballBodiesRef.current.map((b) => b.label));
 
     Matter.Render.run(render);
@@ -137,6 +152,7 @@ export function Machine() {
       width: 200,
       height: 30,
     };
+    
     // 센서 생성 및 참조 저장
     basketSensorRef.current = createBasketSensor(sensorConfig, engine);
 
@@ -163,6 +179,29 @@ export function Machine() {
       });
     });
 
+    // 바람 효과 초기화
+    if (typeof windControlRef.current.startWind === "function") {
+      windControlRef.current.startWind();
+    }
+  };
+
+  // 게임 재시작 함수
+  const restartGame = () => {
+    // 상태 초기화
+    setExitedBalls([]);
+    setInsideBalls([]);
+    setShowPopup(false);
+    
+    // 센서 핸들러 초기화
+    basketSensorHandlerRef.current.reset();
+    
+    // 게임 초기화
+    initializeGame();
+  };
+
+  useEffect(() => {
+    initializeGame();
+
     const handleResize = () => {
       // const { innerWidth, innerHeight } = window;
     };
@@ -171,7 +210,9 @@ export function Machine() {
 
     // 클린업 함수
     return () => {
-      cleanupPhysicsEngine(render, runner);
+      if (renderRef.current && runnerRef.current) {
+        cleanupPhysicsEngine(renderRef.current, runnerRef.current);
+      }
       window.removeEventListener("resize", handleResize);
     };
   }, [width, height, minDimension]); // basketSensor 의존성 제거
@@ -295,6 +336,38 @@ export function Machine() {
           )}
         </div>
       </div>
+      
+      {/* 다시 시작 버튼 - 추첨이 모두 완료되었을 때만 표시 */}
+      {exitedBalls.length >= 7 && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 20,
+          }}
+        >
+          <button
+            onClick={restartGame}
+            style={{
+              padding: "12px 24px",
+              fontSize: "18px",
+              fontWeight: "bold",
+              backgroundColor: "#4CAF50",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+              transition: "all 0.2s ease",
+            }}
+          >
+            다시 추첨하기
+          </button>
+        </div>
+      )}
+      
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
         <div ref={sceneRef} />
       </div>

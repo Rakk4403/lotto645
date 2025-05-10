@@ -298,28 +298,6 @@ export function Machine() {
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
         <div ref={sceneRef} />
       </div>
-      {/* Ball status UI */}
-      <div
-        style={{
-          position: "absolute",
-          top: 10,
-          left: 10,
-          backgroundColor: "rgba(255,255,255,0.9)",
-          padding: "10px",
-          fontSize: "14px",
-          fontFamily: "monospace",
-          zIndex: 10,
-          borderRadius: "8px",
-        }}
-      >
-        <div>
-          <strong>🟢 내부 공</strong>: {insideBalls.join(", ")}
-        </div>
-        <div>
-          <strong>🔴 탈출 공</strong>: {exitedBalls.join(", ")}
-        </div>
-      </div>
-      {/* Ball Popup */}
       <BallPopup balls={drawnBalls} show={showPopup} onClose={closePopup} />
     </>
   );

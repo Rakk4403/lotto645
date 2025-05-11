@@ -12,6 +12,10 @@ import { createBasket } from "./BallBasket";
 import { BallPopup } from "./BallPopup";
 import { Config } from "../const/Config";
 import { useBasketSensor } from "../hooks/useBasketSensor";
+import {
+  calculateRecommendationScore,
+  getScoreRating,
+} from "../utils/RecommendationScore";
 
 /**
  * 공 번호에 따라 색상을 생성하는 함수
@@ -50,13 +54,10 @@ export function Machine() {
 
   const minDimension = Math.min(width, height);
 
-  // Define drawnBalls, mainBalls, bonusBall
-  const drawnBalls = [...exitedBalls];
-  // 정렬된 메인 볼 (보너스 번호 제외)
-  const mainBalls = [...drawnBalls.slice(0, 6)].sort(
-    (a, b) => parseInt(a) - parseInt(b)
-  );
-  const bonusBall = drawnBalls.length > 6 ? drawnBalls[6] : null;
+  // Define drawnBalls
+  const drawnBalls = [...exitedBalls.slice(0, 6)]; // 최대 6개 공만 표시
+  // 정렬된 볼 (오름차순)
+  const sortedBalls = [...drawnBalls].sort((a, b) => parseInt(a) - parseInt(b));
 
   // Wind effect hook - React 훅 규칙에 맞게 최상위에서 호출
   const windControl = useWindEffect(
@@ -81,7 +82,7 @@ export function Machine() {
 
   // 모든 공이 뽑혔을 때 팝업 표시 효과
   useEffect(() => {
-    if (exitedBalls.length === 7) {
+    if (exitedBalls.length >= 6) {
       // 모든 공이 뽑힌 후 약간의 딜레이를 두고 팝업 표시
       const timer = setTimeout(() => {
         setShowPopup(true);
@@ -110,7 +111,7 @@ export function Machine() {
       width,
       height,
     });
-    
+
     // 참조 업데이트
     engineRef.current = engine;
     renderRef.current = render;
@@ -152,7 +153,7 @@ export function Machine() {
       width: 200,
       height: 30,
     };
-    
+
     // 센서 생성 및 참조 저장
     basketSensorRef.current = createBasketSensor(sensorConfig, engine);
 
@@ -191,10 +192,10 @@ export function Machine() {
     setExitedBalls([]);
     setInsideBalls([]);
     setShowPopup(false);
-    
+
     // 센서 핸들러 초기화
     basketSensorHandlerRef.current.reset();
-    
+
     // 게임 초기화
     initializeGame();
   };
@@ -224,7 +225,7 @@ export function Machine() {
       typeof windControlRef.current.startWind !== "function"
     )
       return;
-    if (exitedBalls.length >= 7) {
+    if (exitedBalls.length >= 6) {
       windControlRef.current.stopWind();
     } else {
       windControlRef.current.startWind();
@@ -292,7 +293,7 @@ export function Machine() {
       >
         <div>
           🎱 번호 추첨 결과:&nbsp;
-          {mainBalls.map((label) => (
+          {sortedBalls.map((label) => (
             <span
               key={label}
               style={{
@@ -312,33 +313,11 @@ export function Machine() {
               {label}
             </span>
           ))}
-          {bonusBall && (
-            <span style={{ marginLeft: "10px" }}>
-              +{" "}
-              <span
-                style={{
-                  display: "inline-block",
-                  padding: "4px 8px",
-                  borderRadius: "50%",
-                  backgroundColor: getBallColor(bonusBall),
-                  color: "white",
-                  textShadow: "1px 1px 1px rgba(0,0,0,0.5)",
-                  width: "24px",
-                  height: "24px",
-                  lineHeight: "24px",
-                  textAlign: "center",
-                }}
-              >
-                {bonusBall}
-              </span>{" "}
-              (보너스)
-            </span>
-          )}
         </div>
       </div>
-      
+
       {/* 다시 시작 버튼 - 추첨이 모두 완료되었을 때만 표시 */}
-      {exitedBalls.length >= 7 && (
+      {exitedBalls.length >= 6 && (
         <div
           style={{
             position: "absolute",
@@ -367,7 +346,7 @@ export function Machine() {
           </button>
         </div>
       )}
-      
+
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
         <div ref={sceneRef} />
       </div>

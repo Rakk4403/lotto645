@@ -55,7 +55,7 @@ export const BallPopup: React.FC<BallPopupProps> = ({
 
   // 추천 점수 계산
   const score = calculateRecommendationScore(sortedBalls);
-  const { rating, message } = getScoreRating(score, elementDistribution);
+  const { rating, message } = getScoreRating(score);
 
   // 점수에 따른 배경색 설정
   const getScoreBackgroundColor = (score: number) => {
@@ -131,111 +131,10 @@ export const BallPopup: React.FC<BallPopupProps> = ({
                 }}
               >
                 {ball}
-                <span
-                  style={{
-                    position: "absolute",
-                    bottom: "-20px",
-                    fontSize: "12px",
-                    fontWeight: "normal",
-                    color: "#333",
-                    backgroundColor: "rgba(255, 255, 255, 0.8)",
-                    padding: "1px 4px",
-                    borderRadius: "4px",
-                  }}
-                >
-                  {element}
-                </span>
               </div>
             );
           })}
         </div>
-
-        {/* 오행 분포 표시 영역 */}
-        <div
-          style={{
-            marginTop: "40px",
-            padding: "10px",
-            borderRadius: "10px",
-            backgroundColor: "#f0f0f0",
-            animation: "fadeIn 1s ease-out 2.2s both",
-            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-            display: "flex",
-            justifyContent: "center",
-            flexWrap: "wrap",
-            gap: "10px",
-          }}
-        >
-          <div
-            style={{
-              width: "100%",
-              marginBottom: "10px",
-              fontWeight: "bold",
-              textAlign: "left",
-            }}
-          >
-            🔮 오행(五行) 분포
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: "10px",
-              flexWrap: "wrap",
-            }}
-          >
-            <span
-              style={{
-                padding: "5px 10px",
-                borderRadius: "5px",
-                backgroundColor: "#E3F2FD",
-                fontWeight: elementDistribution["수"] > 0 ? "bold" : "normal",
-              }}
-            >
-              수(水) 💧: {elementDistribution["수"]}개
-            </span>
-            <span
-              style={{
-                padding: "5px 10px",
-                borderRadius: "5px",
-                backgroundColor: "#FFEBEE",
-                fontWeight: elementDistribution["화"] > 0 ? "bold" : "normal",
-              }}
-            >
-              화(火) 🔥: {elementDistribution["화"]}개
-            </span>
-            <span
-              style={{
-                padding: "5px 10px",
-                borderRadius: "5px",
-                backgroundColor: "#E8F5E9",
-                fontWeight: elementDistribution["목"] > 0 ? "bold" : "normal",
-              }}
-            >
-              목(木) 🌳: {elementDistribution["목"]}개
-            </span>
-            <span
-              style={{
-                padding: "5px 10px",
-                borderRadius: "5px",
-                backgroundColor: "#FFFDE7",
-                fontWeight: elementDistribution["금"] > 0 ? "bold" : "normal",
-              }}
-            >
-              금(金) ⚙️: {elementDistribution["금"]}개
-            </span>
-            <span
-              style={{
-                padding: "5px 10px",
-                borderRadius: "5px",
-                backgroundColor: "#EFEBE9",
-                fontWeight: elementDistribution["토"] > 0 ? "bold" : "normal",
-              }}
-            >
-              토(土) 🌍: {elementDistribution["토"]}개
-            </span>
-          </div>
-        </div>
-
         {/* 추천 점수 표시 영역 */}
         <div
           style={{
@@ -253,9 +152,6 @@ export const BallPopup: React.FC<BallPopupProps> = ({
           <p style={{ margin: "0", fontSize: "18px", fontWeight: "500" }}>
             {message}
           </p>
-          <div style={{ marginTop: "10px", fontSize: "14px", color: "#555" }}>
-            * 조건: 목(木) &gt; 화(火) &gt;= (수(水), 금(金), 토(土))
-          </div>
         </div>
 
         <p style={{ marginTop: "30px", fontSize: "18px", color: "#555" }}>

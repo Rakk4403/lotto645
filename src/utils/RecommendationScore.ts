@@ -115,53 +115,39 @@ export const getElementDistributionText = (
  * @returns 등급과 메시지가 포함된 객체
  */
 export const getScoreRating = (
-  score: number,
-  distribution: Record<FiveElement, number> = {
-    수: 0,
-    화: 0,
-    목: 0,
-    금: 0,
-    토: 0,
-  }
+  score: number
 ): { rating: string; message: string } => {
   // 목(Wood) > 화(Fire) >= (수(Water), 금(Metal), 토(Earth)) 조건을 확인
-  const { 목: wood, 화: fire, 수: water, 금: metal, 토: earth } = distribution;
-  const isRecommendedPattern =
-    wood > fire && fire >= water && fire >= metal && fire >= earth;
 
   if (score >= 90) {
     return {
       rating: "S",
-      message: `완벽한 오행 조합입니다! 목${elementEmojis["목"]}>${fire}${
-        elementEmojis["화"]
-      }>${Math.max(water, metal, earth)} 🤩`,
+      message: "행운이 가득한 조합이에요! ✨✨✨",
     };
   } else if (score >= 70) {
     return {
       rating: "A",
-      message: `매우 좋은 오행 조합입니다! ${
-        isRecommendedPattern ? "목>화>=(수,금,토)" : "거의 완벽합니다!"
-      } 😄`,
+      message: "긍정적인 기운이 느껴지는 조합이에요! ✨✨",
     };
   } else if (score >= 50) {
     return {
       rating: "B",
-      message: "좋은 오행 조합입니다! 🙂",
+      message: "밝은 에너지가 담긴 조합이에요! ✨",
     };
   } else if (score >= 30) {
     return {
       rating: "C",
-      message: "평범한 오행 조합입니다.",
+      message: "잔잔한 기운이 느껴지는 조합이에요.",
     };
   } else if (score >= 10) {
     return {
       rating: "D",
-      message: "오행 조합이 아쉽습니다.",
+      message: "미묘한 파동이 있는 조합이에요.",
     };
   } else {
     return {
       rating: "F",
-      message: "오행 조합이 좋지 않습니다. 😕",
+      message: "변화의 기운이 담긴 조합이에요.",
     };
   }
 };

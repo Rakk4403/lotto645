@@ -2,7 +2,6 @@ import React from "react";
 import {
   calculateRecommendationScore,
   getScoreRating,
-  calculateElementDistribution,
 } from "../utils/RecommendationScore";
 
 interface BallPopupProps {
@@ -24,20 +23,6 @@ const getBallColor = (ballNumber: string) => {
 };
 
 /**
- * 일의 자리 숫자에 따라 오행 속성을 반환하는 함수
- */
-const getElementByNumber = (ballNumber: string): string => {
-  const number = parseInt(ballNumber, 10);
-  const lastDigit = number % 10;
-
-  if (lastDigit === 1 || lastDigit === 6) return "수(水)";
-  if (lastDigit === 2 || lastDigit === 7) return "화(火)";
-  if (lastDigit === 3 || lastDigit === 8) return "목(木)";
-  if (lastDigit === 4 || lastDigit === 9) return "금(金)";
-  return "토(土)";
-};
-
-/**
  * 뽑힌 공을 팝업으로 보여주는 컴포넌트
  */
 export const BallPopup: React.FC<BallPopupProps> = ({
@@ -49,9 +34,6 @@ export const BallPopup: React.FC<BallPopupProps> = ({
 
   // 공 정렬 (숫자 기준 오름차순)
   const sortedBalls = [...balls].sort((a, b) => parseInt(a) - parseInt(b));
-
-  // 오행 속성 분포 계산
-  const elementDistribution = calculateElementDistribution(sortedBalls);
 
   // 추천 점수 계산
   const score = calculateRecommendationScore(sortedBalls);
@@ -107,7 +89,6 @@ export const BallPopup: React.FC<BallPopupProps> = ({
         >
           {sortedBalls.map((ball, index) => {
             const ballColor = getBallColor(ball);
-            const element = getElementByNumber(ball);
             return (
               <div
                 key={`popup-${ball}`}

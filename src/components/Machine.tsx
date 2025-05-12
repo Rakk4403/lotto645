@@ -12,10 +12,6 @@ import { createBasket } from "./BallBasket";
 import { BallPopup } from "./BallPopup";
 import { Config } from "../const/Config";
 import { useBasketSensor } from "../hooks/useBasketSensor";
-import {
-  calculateRecommendationScore,
-  getScoreRating,
-} from "../utils/RecommendationScore";
 
 /**
  * 공 번호에 따라 색상을 생성하는 함수
@@ -28,7 +24,6 @@ const getBallColor = (ballNumber: string) => {
 
 export function Machine() {
   const sceneRef = useRef<HTMLDivElement>(null);
-  const [insideBalls, setInsideBalls] = useState<string[]>([]);
   const [exitedBalls, setExitedBalls] = useState<string[]>([]);
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const ballBodiesRef = useRef<Matter.Body[]>([]);
@@ -128,7 +123,6 @@ export function Machine() {
 
     // 공 생성 및 상태 업데이트
     ballBodiesRef.current = createBalls(containerConfig, engine);
-    setInsideBalls(ballBodiesRef.current.map((b) => b.label));
 
     Matter.Render.run(render);
     Matter.Runner.run(runner, engine);
@@ -174,9 +168,6 @@ export function Machine() {
       basketSensorHandlerRef.current.handleCollision(event, (ballBody) => {
         // 공이 바구니에 들어갔을 때 처리
         setExitedBalls((prev) => [...prev, ballBody.label]);
-        setInsideBalls((prev) =>
-          prev.filter((label) => label !== ballBody.label)
-        );
       });
     });
 
@@ -184,13 +175,14 @@ export function Machine() {
     if (typeof windControlRef.current.startWind === "function") {
       windControlRef.current.startWind();
     }
+
+    setExitedBalls([]); // 게임 시작 시 공 초기화
   };
 
   // 게임 재시작 함수
   const restartGame = () => {
     // 상태 초기화
     setExitedBalls([]);
-    setInsideBalls([]);
     setShowPopup(false);
 
     // 센서 핸들러 초기화

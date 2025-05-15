@@ -70,6 +70,7 @@ export function Machine() {
           alignItems: "center",
           overflow: "hidden",
           padding: "0", // 모든 환경에서 패딩 제거
+          margin: "0 auto", // 가로 방향 자동 마진으로 중앙 정렬 강화
         }}
       >
         <div
@@ -102,6 +103,7 @@ export function Machine() {
                 : "scale(1.08)" // 큰 모바일: 새로운 중간 스케일 추가
               : "scale(1.08)", // 데스크탑: 1.05에서 1.08로 스케일 증가
             transformOrigin: "center center",
+            margin: "0 auto", // 수평 중앙 정렬을 확실하게
           }}
         >
           <div
@@ -110,6 +112,11 @@ export function Machine() {
               width: "100%",
               height: "100%",
               transformOrigin: "center center" /* 원점을 중앙으로 설정 */,
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform:
+                "translate(-50%, -50%)" /* 정확한 중앙 정렬 위치 조정 */,
             }}
           />
         </div>

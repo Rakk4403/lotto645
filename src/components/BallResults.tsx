@@ -16,7 +16,7 @@ export const BallResults: React.FC<BallResultsProps> = ({ drawnBalls }) => {
     <div
       style={{
         position: "absolute",
-        top: isMobile ? 2 : 60,
+        top: isMobile ? 10 : 20, // 모바일과 데스크탑 모두 상단 위치 조정
         left: "50%",
         transform: "translateX(-50%)",
         backgroundColor: "rgba(255,255,255,0.95)",

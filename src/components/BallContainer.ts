@@ -18,11 +18,12 @@ export function createContainer(
     Config.WALL_SEGMENTS
   );
 
-  // 각 벽 세그먼트에 옅은 회색 일괄 적용
+  // 각 벽 세그먼트에 더 진한 회색으로 일괄 적용하여 가시성 개선
   walls.forEach((wall) => {
-    wall.render.strokeStyle = "#D3D3D3"; // 옅은 회색 테두리
-    wall.render.fillStyle = "#F5F5F5"; // 매우 옅은 회색 채움
-    wall.render.opacity = 0.7; // 적당한 불투명도
+    wall.render.strokeStyle = "#BBBBBB"; // 더 진한 회색 테두리
+    wall.render.fillStyle = "#F0F0F0"; // 약간 진한 회색 채움
+    wall.render.opacity = 0.8; // 불투명도 증가
+    wall.render.lineWidth = 2.0; // 세그먼트별 라인 두께 증가
   });
 
   const compoundWall = Matter.Body.create({
@@ -31,7 +32,7 @@ export function createContainer(
     collisionFilter: { category: 0x0001, mask: 0x0001 },
     render: {
       fillStyle: "transparent",
-      lineWidth: 1.5, // 얇은 테두리
+      lineWidth: 2.5, // 테두리 두께 1.5에서 2.5로 증가
     },
   });
 

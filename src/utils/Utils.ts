@@ -171,8 +171,8 @@ export function createCircularWall(
     cy,
     radius,
     count,
-    segmentLength,
-    thickness: 20,
+    segmentLength: segmentLength * 1.2, // 세그먼트 길이 20% 증가
+    thickness: 30, // 두께를 20에서 30으로 50% 증가
     excludeStart,
     excludeEnd,
   });
@@ -184,31 +184,30 @@ export function calculateContainerSize(input: {
 }) {
   const { width, height, minDimension } = input;
   // 모바일 환경인지 확인
-  const isMobile = width < 768;
+  const isMobile = width < 768; // 기준이 되는 고정 크기 설정 (더 큰 값으로 조정하여 전체 요소 확대)
+  const BASE_SIZE = 900; // 기본 크기를 800에서 900으로 증가
 
-  // 모바일에서는 화면 크기에 맞는 컨테이너 계산 방식 사용
+  // 기본 컨테이너 크기는 고정값의 비율로 설정 (비율도 증가시켜 더 많은 공간 활용)
   let ballContainerSize;
+
   if (isMobile) {
-    // 모바일 화면 크기에 따라 다르게 계산
+    // 모바일 화면 크기에 따라 다르게 계산, 여백을 줄이고 더 많은 화면 활용
     if (width < 480) {
-      // 작은 모바일 화면에서는 화면의 더 많은 부분을 사용
-      const smallerDimension = Math.min(width, height * 0.95);
-      ballContainerSize = smallerDimension * 0.8; // 80%까지 확대
+      ballContainerSize = BASE_SIZE * 0.8; // 작은 모바일 화면에서 비율 증가
     } else {
-      // 일반 모바일 화면
-      const smallerDimension = Math.min(width, height * 0.92);
-      ballContainerSize = smallerDimension * 0.75; // 75%로 확대
+      ballContainerSize = BASE_SIZE * 0.8; // 일반 모바일 화면에서도 비율 증가
     }
   } else {
-    // 데스크탑에서는 기존 방식대로 계산
-    ballContainerSize = minDimension * 0.65;
+    // 데스크탑에서는 더 큰 값으로 설정
+    ballContainerSize = BASE_SIZE * 0.85; // 데스크탑 화면에서 비율 증가
   }
 
   const ballContainerRadius = ballContainerSize / 2;
   const ballContainerX = width / 2;
   // 모바일에서는 화면 중앙에 배치
   const ballContainerY = height / 2;
-  const ballRadius = Math.max(10, Math.min(20, minDimension / 40)); // Adjust ball size based on container
+
+  const ballRadius = Math.max(10, Math.min(20, minDimension / 40)); // 컨테이너에 따라 공 크기 조정
   const ringThickness = 10;
   const innerWallRadius = ballContainerRadius - ringThickness / 2;
   const spawnRadius = innerWallRadius - ballRadius;

@@ -3,10 +3,10 @@ import Matter from "matter-js";
 import { rotateWallSegments } from "../utils/Utils";
 
 const guideWallConfig = {
-  wallLength: 30, // 가이드 벽 길이
-  wallThickness: 10, // 가이드 벽 두께
+  wallLength: 40, // 가이드 벽 길이 30에서 40으로 증가
+  wallThickness: 15, // 가이드 벽 두께 10에서 15로 증가
   wallColor: "rgba(200, 200, 200, 1)", // 가이드 벽 색상
-  wallOpacity: 0.5, // 가이드 벽 불투명도
+  wallOpacity: 0.6, // 가이드 벽 불투명도 약간 증가
   wallCategory: 0x0001, // 가이드 벽 카테고리
   wallMask: 0x0001, // 가이드 벽 마스크
 };
@@ -26,9 +26,9 @@ export function createGuideWalls(
   let currentAngle = exitAngle + Math.PI / 11 + stepAngle;
 
   // 반원형 가이드 벽 추가 (12시 방향)
-  const semicircleRadius = 100;
+  const semicircleRadius = 140; // 반원 반지름을 100에서 140으로 40% 증가
   // 반원 각도를 증가시켜서 더 넓게 커버 (180도보다 더 넓은 각도로 확장)
-  const semicircleSegments = 16;
+  const semicircleSegments = 20; // 세그먼트 수를 16에서 20으로 증가하여 더 매끄러운 곡선
   // 약 200도 정도로 반원을 확장 (π + π*0.1)
   const semicircleAngleRange = Math.PI + Math.PI * 0.1;
   const semicircleStep = semicircleAngleRange / semicircleSegments;
@@ -116,6 +116,7 @@ export function setupGuideWalls(
     y: number;
     radius: number;
     ballRadius: number;
+    ringThickness: number;
   },
   exitAngle: number,
   engine: Matter.Engine
@@ -124,7 +125,7 @@ export function setupGuideWalls(
   const guideWalls = createGuideWalls(
     containerConfig.x,
     containerConfig.y,
-    containerConfig.radius,
+    containerConfig.radius + containerConfig.ringThickness,
     containerConfig.ballRadius,
     (Math.PI / 2) * 3
   );

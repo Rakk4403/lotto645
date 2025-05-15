@@ -5,8 +5,8 @@ import { BallResults } from "./BallResults";
 import { RestartButton } from "./RestartButton";
 import { getRenderScale } from "../utils/BallUtils";
 
-const DEFAULT_WIDTH = 800; // 1200에서 900으로 기본 너비 감소 (가로 여백 감소 목적)
-const DEFAULT_HEIGHT = 800;
+const DEFAULT_WIDTH = 1200; // 데스크탑 환경에서 더 크게 보이도록 1200으로 조정
+const DEFAULT_HEIGHT = 1200;
 
 export function Machine() {
   // 창 크기 상태 관리
@@ -18,7 +18,7 @@ export function Machine() {
   // 모바일 환경 감지
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  // 렌더링 스케일 계산
+  // 렌더링 스케일 계산 (물리 엔진 사용을 위해 필요)
   const renderScale = getRenderScale(dimensions.width, dimensions.height);
 
   // 창 크기 변경 감지
@@ -76,19 +76,31 @@ export function Machine() {
           style={{
             width: isMobile
               ? `${Math.min(
-                  window.innerWidth * 0.98,
-                  window.innerHeight * 0.95
+                  window.innerWidth * 0.99, // 0.98에서 0.99로 여백 더 감소
+                  window.innerHeight * 0.98 // 0.95에서 0.98로 여백 더 감소
                 )}px` // 모바일: 화면을 최대한 채우기
-              : `${DEFAULT_WIDTH * renderScale}px`,
+              : `${Math.min(
+                  window.innerWidth * 0.9, // 0.85에서 0.9로 여백 감소
+                  window.innerHeight * 0.9, // 0.85에서 0.9로 여백 감소
+                  1300 // 1200에서 1300으로 최대 크기 증가
+                )}px`, // 데스크탑: 최대 1300px까지 제한
             height: isMobile
               ? `${Math.min(
-                  window.innerWidth * 0.98,
-                  window.innerHeight * 0.95
+                  window.innerWidth * 0.99, // 0.98에서 0.99로 여백 더 감소
+                  window.innerHeight * 0.98 // 0.95에서 0.98로 여백 더 감소
                 )}px` // 정사각형 비율 유지
-              : `${DEFAULT_HEIGHT * renderScale}px`,
+              : `${Math.min(
+                  window.innerWidth * 0.9, // 0.85에서 0.9로 여백 감소
+                  window.innerHeight * 0.9, // 0.85에서 0.9로 여백 감소
+                  1300 // 1200에서 1300으로 최대 크기 증가
+                )}px`, // 데스크탑: 최대 1300px까지 제한
             position: "relative",
             maxWidth: "100%", // 최대 너비 제한 추가
-            transform: isMobile ? "scale(1.05)" : "none", // 모바일에서 약간 더 확대 (여백 최소화)
+            transform: isMobile
+              ? window.innerWidth < 480
+                ? "scale(1.1)" // 모바일: 1.05에서 1.1로 스케일 증가
+                : "scale(1.08)" // 큰 모바일: 새로운 중간 스케일 추가
+              : "scale(1.08)", // 데스크탑: 1.05에서 1.08로 스케일 증가
             transformOrigin: "center center",
           }}
         >

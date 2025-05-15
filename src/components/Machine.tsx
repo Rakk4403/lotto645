@@ -1,15 +1,37 @@
+import { useState, useEffect } from "react";
 import { useLotteryMachine } from "../hooks/useLotteryMachine";
 import { BallPopup } from "./BallPopup";
 import { BallResults } from "./BallResults";
 import { RestartButton } from "./RestartButton";
+import { getRenderScale } from "../utils/BallUtils";
+
+const DEFAULT_WIDTH = 1200;
+const DEFAULT_HEIGHT = 800;
 
 export function Machine() {
-  // 창 크기 계산
-  const { innerWidth, innerHeight } = window;
-  const width = Math.min(innerWidth, 1200);
-  const height = Math.min(innerHeight, 800);
+  // 창 크기 상태 관리
+  const [dimensions, setDimensions] = useState({
+    width: Math.min(window.innerWidth, DEFAULT_WIDTH),
+    height: Math.min(window.innerHeight, DEFAULT_HEIGHT),
+  });
 
-  // 로또 머신 훅 사용
+  // 렌더링 스케일 계산
+  const renderScale = getRenderScale(dimensions.width, dimensions.height);
+
+  // 창 크기 변경 감지
+  useEffect(() => {
+    const handleResize = () => {
+      setDimensions({
+        width: Math.min(window.innerWidth, DEFAULT_WIDTH),
+        height: Math.min(window.innerHeight, DEFAULT_HEIGHT),
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // 로또 머신 훅 사용 (물리 엔진 차원에서의 크기는 고정)
   const {
     exitedBalls,
     showPopup,
@@ -17,7 +39,7 @@ export function Machine() {
     restartGame,
     sceneRef,
     handleShake,
-  } = useLotteryMachine(width, height);
+  } = useLotteryMachine(DEFAULT_WIDTH, DEFAULT_HEIGHT); // 물리 계산은 항상 고정 사이즈로
 
   // 최대 6개 공만 표시
   const drawnBalls = [...exitedBalls.slice(0, 6)];
@@ -30,9 +52,36 @@ export function Machine() {
       {/* 다시 시작 버튼 */}
       <RestartButton onRestart={restartGame} show={exitedBalls.length >= 6} />
 
-      {/* 물리 엔진 렌더링 영역 */}
-      <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        <div ref={sceneRef} />
+      {/* 물리 엔진 렌더링 영역 - 시각적 스케일링만 적용 */}
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${DEFAULT_WIDTH * renderScale}px` /* 렌더링 스케일 적용 */,
+            height: `${
+              DEFAULT_HEIGHT * renderScale
+            }px` /* 렌더링 스케일 적용 */,
+            position: "relative",
+          }}
+        >
+          <div
+            ref={sceneRef}
+            style={{
+              width: "100%",
+              height: "100%",
+              transformOrigin: "center center" /* 원점을 중앙으로 설정 */,
+            }}
+          />
+        </div>
       </div>
 
       {/* 공 추첨 완료 팝업 */}

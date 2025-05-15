@@ -50,8 +50,14 @@ export function createBalls(
       return;
     }
 
-    // 디버깅용 로그
-    console.log(`렌더링 이벤트 발생, 공 ${balls.length}개 처리`);
+    // 디버깅용 로그는 필요 시에만 활성화
+    // console.log(`렌더링 이벤트 발생, 공 ${balls.length}개 처리`);
+
+    // 화면 크기에 맞게 텍스트 크기 조정을 위한 스케일 계산
+    const canvas = engine.render.canvas;
+    const scaleX = canvas.width / (engine.render.options.width || 1200);
+    const scaleY = canvas.height / (engine.render.options.height || 800);
+    const renderScale = Math.min(scaleX, scaleY);
 
     // 모든 공에 대해 번호 텍스트 렌더링
     for (const ball of balls) {
@@ -63,16 +69,18 @@ export function createBalls(
       // 현재 변환을 저장
       context.save();
 
-      // 텍스트 스타일 설정 (더 크고 굵게)
+      // 텍스트 크기를 화면 크기와 공 크기에 맞게 조정
+      // 최소 크기 제한을 두어 작은 화면에서도 읽을 수 있게 함
       const fontSize = Math.max(
-        Math.floor(containerConfig.ballRadius * 0.9),
-        16
+        Math.floor(containerConfig.ballRadius * 0.8),
+        Math.min(14, containerConfig.ballRadius * 0.7)
       );
+
       context.font = `bold ${fontSize}px Arial, sans-serif`;
 
       // 텍스트 테두리 그리기 (검은색)
       context.strokeStyle = "#000000";
-      context.lineWidth = 3;
+      context.lineWidth = Math.max(2, 3 * renderScale); // 최소 두께 보장
       context.textAlign = "center";
       context.textBaseline = "middle";
       context.strokeText(ballNumber, pos.x, pos.y);
@@ -128,14 +136,19 @@ export function createBalls(
 function createBallTexture(number: number, size: number): string {
   // 캔버스 생성
   const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
+
+  // 선명한 텍스처를 위해 디바이스 픽셀 비율 고려
+  const pixelRatio = window.devicePixelRatio / 2 || 1;
+  const adjustedSize = size * pixelRatio;
+
+  canvas.width = adjustedSize;
+  canvas.height = adjustedSize;
   const ctx = canvas.getContext("2d");
 
   if (!ctx) return "";
 
   // 배경 원 그리기
-  const radius = size / 2;
+  const radius = adjustedSize / 2;
   ctx.beginPath();
   ctx.arc(radius, radius, radius, 0, Math.PI * 2);
   ctx.closePath();
@@ -145,14 +158,22 @@ function createBallTexture(number: number, size: number): string {
   ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
   ctx.fill();
 
-  // 텍스트 그리기
-  ctx.font = `bold ${Math.max(size / 2.5, 16)}px Arial, sans-serif`;
+  // 테두리 추가 - 약간 얇게 조정
+  // ctx.strokeStyle = `hsl(${hue}, 80%, 30%)`;
+  // ctx.lineWidth = 1;
+  // ctx.stroke();
+
+  // 텍스트 그리기 - 디바이스 픽셀 비율 고려하고 크기 조정
+  ctx.font = `bold ${Math.max(
+    adjustedSize / 2.5,
+    16 * pixelRatio
+  )}px Arial, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  // 텍스트 외곽선
+  // 텍스트 외곽선 - 두께 미세 조정
   ctx.strokeStyle = "#000000";
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 3 * pixelRatio;
   ctx.strokeText(number.toString(), radius, radius);
 
   // 텍스트 내용

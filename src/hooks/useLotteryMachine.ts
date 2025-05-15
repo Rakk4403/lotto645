@@ -150,7 +150,16 @@ export function useLotteryMachine(
     basketSensorRef.current = createBasketSensor(sensorConfig, engine);
 
     // 가이드 벽 설정
-    setupGuideWalls(containerConfig, Config.EXIT_ANGLE, engine);
+    setupGuideWalls(
+      {
+        x: containerConfig.x,
+        y: containerConfig.y,
+        radius: containerConfig.radius,
+        ballRadius: containerConfig.ballRadius,
+      },
+      Config.EXIT_ANGLE,
+      engine
+    );
 
     // 바구니 생성
     const basketWidth = 200;

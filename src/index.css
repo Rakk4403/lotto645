@@ -35,6 +35,24 @@ h1 {
   line-height: 1.1;
 }
 
+/* 모바일 화면에서 제목 크기 줄임 */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+}
+
+/* 더 작은 화면에서 추가로 크기 줄임 */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.7em;
+    margin-top: 0.3em;
+    margin-bottom: 0.3em;
+  }
+}
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;

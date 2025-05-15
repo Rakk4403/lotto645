@@ -22,8 +22,8 @@ export function createGuideWalls(
   const guideWalls: Matter.Body[] = [];
   const guideOffset = ballRadius * 3; // offset slightly outside the container
   const stepCount = 20; // number of guide segments
-  const stepAngle = (Math.PI / 2 - Math.PI / 18) / stepCount; // cover from exit to 6 o'clock
-  let currentAngle = exitAngle + Math.PI / 12 + stepAngle; // start from 12 o'clock
+  const stepAngle = (Math.PI / 2 - Math.PI / 18) / stepCount;
+  let currentAngle = exitAngle + Math.PI / 11 + stepAngle;
 
   // 반원형 가이드 벽 추가 (12시 방향)
   const semicircleRadius = 100;

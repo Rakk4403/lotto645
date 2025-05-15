@@ -183,10 +183,10 @@ export function calculateContainerSize(input: {
   minDimension: number;
 }) {
   const { width, height, minDimension } = input;
-  const ballContainerSize = minDimension * 0.7; // Using 85% of the smaller dimension
+  const ballContainerSize = minDimension * 0.65; // 0.7에서 0.65로 약간 줄여서 더 많은 여백 확보
   const ballContainerRadius = ballContainerSize / 2;
   const ballContainerX = width / 2;
-  const ballContainerY = height / 2;
+  const ballContainerY = height / 2 + 20; // 전체 컨테이너를 20픽셀만 아래로 이동 (40에서 20으로 조정)
   const ballRadius = Math.max(10, Math.min(20, minDimension / 40)); // Adjust ball size based on container
   const ringThickness = 10;
   const innerWallRadius = ballContainerRadius - ringThickness / 2;

@@ -16,17 +16,18 @@ export const BallResults: React.FC<BallResultsProps> = ({ drawnBalls }) => {
     <div
       style={{
         position: "absolute",
-        top: isMobile ? 30 : 60,
+        top: isMobile ? 2 : 60,
         left: "50%",
         transform: "translateX(-50%)",
         backgroundColor: "rgba(255,255,255,0.95)",
-        padding: isMobile ? "6px" : "10px",
-        fontSize: isMobile ? "14px" : "18px",
+        padding: isMobile ? "3px" : "10px",
+        fontSize: isMobile ? "11px" : "18px",
         fontWeight: "bold",
         fontFamily: "monospace",
         zIndex: 12,
         borderRadius: "8px",
         boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+        maxWidth: isMobile ? "95%" : "auto",
       }}
     >
       <div>

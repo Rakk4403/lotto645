@@ -183,10 +183,31 @@ export function calculateContainerSize(input: {
   minDimension: number;
 }) {
   const { width, height, minDimension } = input;
-  const ballContainerSize = minDimension * 0.65; // 0.7에서 0.65로 약간 줄여서 더 많은 여백 확보
+  // 모바일 환경인지 확인
+  const isMobile = width < 768;
+
+  // 모바일에서는 화면 크기에 맞는 컨테이너 계산 방식 사용
+  let ballContainerSize;
+  if (isMobile) {
+    // 모바일 화면 크기에 따라 다르게 계산
+    if (width < 480) {
+      // 작은 모바일 화면에서는 화면의 더 많은 부분을 사용
+      const smallerDimension = Math.min(width, height * 0.95);
+      ballContainerSize = smallerDimension * 0.8; // 80%까지 확대
+    } else {
+      // 일반 모바일 화면
+      const smallerDimension = Math.min(width, height * 0.92);
+      ballContainerSize = smallerDimension * 0.75; // 75%로 확대
+    }
+  } else {
+    // 데스크탑에서는 기존 방식대로 계산
+    ballContainerSize = minDimension * 0.65;
+  }
+
   const ballContainerRadius = ballContainerSize / 2;
   const ballContainerX = width / 2;
-  const ballContainerY = height / 2 + 20; // 전체 컨테이너를 20픽셀만 아래로 이동 (40에서 20으로 조정)
+  // 모바일에서는 화면 중앙에 배치
+  const ballContainerY = height / 2;
   const ballRadius = Math.max(10, Math.min(20, minDimension / 40)); // Adjust ball size based on container
   const ringThickness = 10;
   const innerWallRadius = ballContainerRadius - ringThickness / 2;

@@ -204,8 +204,9 @@ export function calculateContainerSize(input: {
 
   const ballContainerRadius = ballContainerSize / 2;
   const ballContainerX = width / 2; // 가로 중앙 위치
-  // 모든 환경에서 화면 정중앙에 배치 (모바일/데스크탑 동일하게)
-  const ballContainerY = height / 2; // 세로 중앙 위치
+  // 데스크탑에서는 상단 여백 확보를 위해 약간 아래로 조정
+  const yOffset = isMobile ? 0 : height * 0.03; // 데스크탑에서 3% 아래로 조정
+  const ballContainerY = height / 2 + yOffset; // 세로 위치 조정
 
   const ballRadius = Math.max(10, Math.min(20, minDimension / 40)); // 컨테이너에 따라 공 크기 조정
   const ringThickness = 10;

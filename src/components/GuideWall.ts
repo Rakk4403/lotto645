@@ -35,8 +35,10 @@ export function createGuideWalls(
   const semicircleRotation = Math.PI * 0.08;
 
   const semicircleCenterX = cx;
-  // y 위치를 조금 높여서 컨테이너와 닿게 함
-  const semicircleCenterY = cy - containerRadius - guideOffset + 10;
+  // 화면 크기에 따라 Y축 위치를 동적으로 조정
+  const isMobile = window.innerWidth < 768;
+  const yAdjustment = isMobile ? 15 : 15; // 데스크탑에서 더 많은 여유 공간 확보
+  const semicircleCenterY = cy - containerRadius - guideOffset + yAdjustment;
 
   // 반원 가이드 벽 생성 (왼쪽에서 오른쪽으로)
   for (let i = 0; i <= semicircleSegments; i++) {

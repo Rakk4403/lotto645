@@ -69,7 +69,7 @@ export function Machine() {
           justifyContent: "center",
           alignItems: "center",
           overflow: "hidden",
-          padding: "0", // 모든 환경에서 패딩 제거
+          padding: isMobile ? "0" : "40px 0 0 0", // 데스크탑에서 상단 여백 추가
           margin: "0 auto", // 가로 방향 자동 마진으로 중앙 정렬 강화
         }}
       >
@@ -113,10 +113,11 @@ export function Machine() {
               height: "100%",
               transformOrigin: "center center" /* 원점을 중앙으로 설정 */,
               position: "absolute",
-              top: "50%",
+              top: isMobile ? "50%" : "53%", // 데스크탑에서 약간 아래로 이동하여 상단이 짤리지 않도록
               left: "50%",
-              transform:
-                "translate(-50%, -50%)" /* 정확한 중앙 정렬 위치 조정 */,
+              transform: isMobile
+                ? "translate(-50%, -50%)"
+                : "translate(-50%, -53%)" /* 데스크탑에서 위치 조정 */,
             }}
           />
         </div>

@@ -37,9 +37,6 @@ export function Machine() {
 
   return (
     <>
-      {/* 추첨 결과 표시 */}
-      <BallResults drawnBalls={drawnBalls} />
-
       {/* 다시 시작 버튼 */}
       <RestartButton onRestart={restartGame} show={exitedBalls.length >= 6} />
 
@@ -57,6 +54,8 @@ export function Machine() {
           margin: "0 auto", // 가로 방향 자동 마진으로 중앙 정렬 강화
         }}
       >
+        {/* 추첨 결과 표시 */}
+        <BallResults drawnBalls={drawnBalls} />
         <div
           style={{
             width: isMobile
@@ -65,8 +64,8 @@ export function Machine() {
                   window.innerHeight * 0.98 // 0.95에서 0.98로 여백 더 감소
                 )}px` // 모바일: 화면을 최대한 채우기
               : `${Math.min(
-                  window.innerWidth * 0.9, // 0.85에서 0.9로 여백 감소
-                  window.innerHeight * 0.9, // 0.85에서 0.9로 여백 감소
+                  window.innerWidth * 0.8, // 0.85에서 0.9로 여백 감소
+                  window.innerHeight * 0.8, // 0.85에서 0.9로 여백 감소
                   1300 // 1200에서 1300으로 최대 크기 증가
                 )}px`, // 데스크탑: 최대 1300px까지 제한
             height: isMobile
@@ -75,8 +74,8 @@ export function Machine() {
                   window.innerHeight * 0.98 // 0.95에서 0.98로 여백 더 감소
                 )}px` // 정사각형 비율 유지
               : `${Math.min(
-                  window.innerWidth * 0.9, // 0.85에서 0.9로 여백 감소
-                  window.innerHeight * 0.9, // 0.85에서 0.9로 여백 감소
+                  window.innerWidth * 0.8, // 0.85에서 0.9로 여백 감소
+                  window.innerHeight * 0.8, // 0.85에서 0.9로 여백 감소
                   1300 // 1200에서 1300으로 최대 크기 증가
                 )}px`, // 데스크탑: 최대 1300px까지 제한
             position: "relative",

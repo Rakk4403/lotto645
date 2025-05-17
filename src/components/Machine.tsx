@@ -3,34 +3,18 @@ import { useLotteryMachine } from "../hooks/useLotteryMachine";
 import { BallPopup } from "./BallPopup";
 import { BallResults } from "./BallResults";
 import { RestartButton } from "./RestartButton";
-import { getRenderScale } from "../utils/BallUtils";
+// import { getRenderScale } from "../utils/BallUtils";
 
 const DEFAULT_WIDTH = 1200; // 데스크탑 환경에서 더 크게 보이도록 1200으로 조정
 const DEFAULT_HEIGHT = 1200;
 
 export function Machine() {
-  // 창 크기 상태 관리
-  const [dimensions, setDimensions] = useState({
-    width: Math.min(window.innerWidth, DEFAULT_WIDTH),
-    height: Math.min(window.innerHeight, DEFAULT_HEIGHT),
-  });
-
   // 모바일 환경 감지
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-  // 렌더링 스케일 계산 (물리 엔진 사용을 위해 필요)
-  const renderScale = getRenderScale(dimensions.width, dimensions.height);
 
   // 창 크기 변경 감지
   useEffect(() => {
     const handleResize = () => {
-      const newWidth = Math.min(window.innerWidth, DEFAULT_WIDTH);
-      const newHeight = Math.min(window.innerHeight, DEFAULT_HEIGHT);
-
-      setDimensions({
-        width: newWidth,
-        height: newHeight,
-      });
       setIsMobile(window.innerWidth < 768);
     };
 

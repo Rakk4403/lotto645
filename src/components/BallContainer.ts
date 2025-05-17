@@ -18,12 +18,12 @@ export function createContainer(
     Config.WALL_SEGMENTS
   );
 
-  // 각 벽 세그먼트에 더 진한 회색으로 일괄 적용하여 가시성 개선
+  // 각 벽 세그먼트에 유리 느낌의 하늘색 테두리로 적용, 겹침 해결을 위해 투명도 조정
   walls.forEach((wall) => {
-    wall.render.strokeStyle = "#BBBBBB"; // 더 진한 회색 테두리
-    wall.render.fillStyle = "#F0F0F0"; // 약간 진한 회색 채움
-    wall.render.opacity = 0.8; // 불투명도 증가
-    wall.render.lineWidth = 2.0; // 세그먼트별 라인 두께 증가
+    wall.render.strokeStyle = "#5DADE2"; // 하늘색 테두리
+    wall.render.fillStyle = "rgba(212, 240, 255, 0.08)"; // 매우 연한 하늘색, 더 투명한 채움으로 겹침 효과 감소
+    wall.render.opacity = 0.8; // 불투명도 약간 감소로 겹침 효과 완화
+    wall.render.lineWidth = 1.8; // 라인 두께 약간 감소로 더 매끄러운 테두리
   });
 
   const compoundWall = Matter.Body.create({
@@ -32,7 +32,8 @@ export function createContainer(
     collisionFilter: { category: 0x0001, mask: 0x0001 },
     render: {
       fillStyle: "transparent",
-      lineWidth: 2.5, // 테두리 두께 1.5에서 2.5로 증가
+      lineWidth: 2.0, // 테두리 두께 약간 감소로 더 매끄러운 표현
+      strokeStyle: "rgba(52, 152, 219, 0.7)", // 반투명 하늘색으로 매끄러운 테두리 효과
     },
   });
 

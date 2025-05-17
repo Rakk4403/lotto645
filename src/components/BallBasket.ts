@@ -32,13 +32,13 @@ export function createBasket(
     cy: y,
     radius: radius,
     count: segmentCount,
-    segmentLength: ((2 * Math.PI * radius) / segmentCount) * 1.05, // 5% 중첩으로 매끄럽게
-    thickness: wallThickness,
+    segmentLength: ((2 * Math.PI * radius) / segmentCount) * 1.0, // 중첩 없이 깔끔하게
+    thickness: wallThickness * 0.85, // 두께를 약간 줄여 겹침 감소
     excludeStart: excludeStart,
     excludeEnd: excludeEnd,
-    fillStyle: "#D3D3D3", // 옅은 회색 바구니
-    strokeStyle: "#A9A9A9", // 테두리 색상
-    lineWidth: 1,
+    fillStyle: "rgba(46, 204, 113, 0.5)", // 반투명 연두색으로 겹침 효과 완화
+    strokeStyle: "rgba(39, 174, 96, 0.7)", // 반투명 테두리로 매끄러운 표현
+    lineWidth: 1.2, // 테두리 두께 약간 감소로 더 매끄럽게
   });
 
   // 각 세그먼트에 바구니 라벨 추가

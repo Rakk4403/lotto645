@@ -30,6 +30,11 @@ export function createExitWalls(
     {
       isStatic: true,
       render: {
+        fillStyle: "rgba(52, 152, 219, 0.6)", // 하늘색 계열의 슬라이딩 도어 (볼컨테이너와 어울리도록)
+        strokeStyle: "#2980B9", // 약간 진한 테두리
+        lineWidth: 1,
+      },
+      render: {
         fillStyle: "#D3D3D3",
         strokeStyle: "#A9A9A9",
         lineWidth: 1,

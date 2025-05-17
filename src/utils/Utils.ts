@@ -171,8 +171,8 @@ export function createCircularWall(
     cy,
     radius,
     count,
-    segmentLength: segmentLength * 1.2, // 세그먼트 길이 20% 증가
-    thickness: 30, // 두께를 20에서 30으로 50% 증가
+    segmentLength: segmentLength * 1.0, // 세그먼트 길이를 더 작게 조정하여 겹침 감소
+    thickness: 24, // 두께를 약간 줄여 겹침 현상 감소
     excludeStart,
     excludeEnd,
   });

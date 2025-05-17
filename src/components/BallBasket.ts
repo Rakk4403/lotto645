@@ -9,8 +9,7 @@ import { createCircularWallSegments } from "../utils/Utils";
 export function createBasket(
   x: number,
   y: number,
-  width: number = 70,
-  height: number = 40
+  width: number = 70
 ): Matter.Body[] {
   const radius = width / 2;
   const wallThickness = 8;

@@ -34,11 +34,11 @@ export function createExitWalls(
         strokeStyle: "#2980B9", // 약간 진한 테두리
         lineWidth: 1,
       },
-      render: {
-        fillStyle: "#D3D3D3",
-        strokeStyle: "#A9A9A9",
-        lineWidth: 1,
-      },
+      // render: {
+      //   fillStyle: "#D3D3D3",
+      //   strokeStyle: "#A9A9A9",
+      //   lineWidth: 1,
+      // },
       label: "leftExitDoor",
       collisionFilter: { category: 0x0001, mask: 0x0001 },
     }

@@ -128,7 +128,7 @@ export function setupGuideWalls(
     ballRadius: number;
     ringThickness: number;
   },
-  exitAngle: number,
+  // exitAngle: number,
   engine: Matter.Engine
 ) {
   // 가이드 벽 생성

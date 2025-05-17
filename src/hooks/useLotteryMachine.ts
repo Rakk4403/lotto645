@@ -12,7 +12,6 @@ import { setupAntiStuck } from "../components/AntiStuck";
 import { initPhysicsEngine, cleanupPhysicsEngine } from "../components/Engine";
 import { useWindEffect } from "./useWindEffect";
 import { createBasket } from "../components/BallBasket";
-import { Config } from "../const/Config";
 import { useBasketSensor } from "./useBasketSensor";
 
 export interface ContainerConfig {
@@ -31,7 +30,7 @@ export interface LotteryMachine {
   showPopup: boolean;
   closePopup: () => void;
   restartGame: () => void;
-  sceneRef: React.RefObject<HTMLDivElement>;
+  sceneRef: React.RefObject<HTMLDivElement | null>;
   handleShake: () => Promise<void>;
 }
 
@@ -39,7 +38,7 @@ export function useLotteryMachine(
   width: number,
   height: number
 ): LotteryMachine {
-  const sceneRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<HTMLDivElement | null>(null);
   const [exitedBalls, setExitedBalls] = useState<string[]>([]);
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const ballBodiesRef = useRef<Matter.Body[]>([]);
@@ -150,14 +149,13 @@ export function useLotteryMachine(
     basketSensorRef.current = createBasketSensor(sensorConfig, engine);
 
     // 가이드 벽 설정
-    setupGuideWalls(containerConfig, Config.EXIT_ANGLE, engine);
+    setupGuideWalls(containerConfig, engine);
 
     // 바구니 생성
     const basketWidth = 200;
-    const basketHeight = 30;
     const basketX = containerConfig.x + containerConfig.radius;
     const basketY = containerConfig.y + containerConfig.radius;
-    const basket = createBasket(basketX, basketY, basketWidth, basketHeight);
+    const basket = createBasket(basketX, basketY, basketWidth);
     Matter.Composite.add(engine.world, basket);
 
     // 바구니 충돌 감지 설정

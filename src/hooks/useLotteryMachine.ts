@@ -9,7 +9,11 @@ import {
 } from "../components/BasketSensor";
 import { createBalls } from "../components/Balls";
 import { setupAntiStuck } from "../components/AntiStuck";
-import { initPhysicsEngine, cleanupPhysicsEngine } from "../components/Engine";
+import {
+  initPhysicsEngine,
+  cleanupPhysicsEngine,
+  perfMode,
+} from "../components/Engine";
 import { useWindEffect } from "./useWindEffect";
 import { createBasket } from "../components/BallBasket";
 import { useBasketSensor } from "./useBasketSensor";
@@ -88,7 +92,7 @@ export function useLotteryMachine(
     setShowPopup(false);
   };
 
-  // 게임 초기화 함수
+  // 물리 엔진 초기화
   const initializeGame = () => {
     if (!sceneRef.current) return;
 
@@ -103,6 +107,24 @@ export function useLotteryMachine(
       width,
       height,
     });
+
+    // 모바일 환경에서 추가 설정
+    if (perfMode.isLowPerf) {
+      // 모바일에서 엔진의 활성화 임계값 설정 수정
+      // @ts-expect-error - MatterJS 내부 설정에 접근
+      if (engine.timing) {
+        // @ts-expect-error - MatterJS 내부 속성 접근
+        engine.timing.lastElapsed = 0; // 경과 시간 초기화
+
+        // @ts-expect-error - MatterJS 내부 속성 접근
+        if (engine.sleeping) {
+          // @ts-expect-error - 각 물체가 활성 상태로 간주되는 최소 속도 임계값 낮춤
+          engine.sleeping.motionThreshold = 0.8; // 기본값보다 낮게 설정 (더 활성화되기 쉽게)
+          // @ts-expect-error - 수면 상태로 전환되기까지의 시간 증가
+          engine.sleeping.timeToSleep = 2000; // 시뮬레이션 단계 (기본 60보다 훨씬 크게)
+        }
+      }
+    }
 
     // 참조 업데이트
     engineRef.current = engine;

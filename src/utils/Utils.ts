@@ -27,6 +27,15 @@ export function shakeScreen(
   intensity: number = 5,
   duration: number = 500
 ): Promise<void> {
+  // 모바일에서 성능 최적화를 위한 수정 판단
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  // 모바일 기기에서는 진동 강도와 지속 시간 감소
+  if (isMobile) {
+    intensity = Math.max(2, intensity * 0.6); // 강도 40% 감소, 최소 2
+    duration = Math.min(200, duration * 0.8); // 지속 시간 20% 감소, 최대 200ms
+  }
+
   return new Promise((resolve) => {
     const originalStyle = element.style.transform;
     const originalTransition = element.style.transition;
@@ -34,9 +43,22 @@ export function shakeScreen(
     // 애니메이션 시작 시간
     const startTime = Date.now();
 
+    // 모바일 기기에서는 프레임 간격 조절 (더 적은 수의 프레임으로 애니메이션)
+    const frameInterval = isMobile ? 32 : 16; // 모바일: 약 30fps, 데스크톱: 약 60fps
+    let lastFrameTime = 0;
+
     // 진동 애니메이션 프레임
     function animate() {
       const elapsed = Date.now() - startTime;
+      const now = Date.now();
+
+      // 현재 시간이 마지막 프레임 시간 + 간격보다 작으면 프레임 스킵 (모바일 최적화)
+      if (now - lastFrameTime < frameInterval && elapsed < duration) {
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      lastFrameTime = now;
 
       if (elapsed < duration) {
         // 진동 강도를 시간이 지남에 따라 줄이기
@@ -166,15 +188,22 @@ export function createCircularWall(
   const excludeStart = exitAngle - exitAngleHalfWidth;
   const excludeEnd = exitAngle + exitAngleHalfWidth;
 
+  // 모바일에서는 더 두꺼운 벽과 더 큰 마찰 계수로 충돌 안정성 향상
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const wallThickness = isMobile ? 30 : 24; // 모바일에서 더 두꺼운 벽
+
   return createCircularWallSegments({
     cx,
     cy,
     radius,
     count,
     segmentLength: segmentLength * 1.0, // 세그먼트 길이를 더 작게 조정하여 겹침 감소
-    thickness: 24, // 두께를 약간 줄여 겹침 현상 감소
+    thickness: wallThickness,
     excludeStart,
     excludeEnd,
+    // 추가 물리 속성 (충돌 안정성 향상)
+    restitution: 0.5, // 탄성 계수 (0-1, 높을수록 더 많이 튕김)
+    friction: 0.3, // 마찰 계수 (0-1, 높을수록 마찰력 증가)
   });
 } // 컨테이너 크기 계산 함수
 export function calculateContainerSize(input: {

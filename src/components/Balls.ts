@@ -1,6 +1,7 @@
 import Matter from "matter-js";
 import { Config } from "../const/Config";
 import { randomPointInCircle } from "../utils/Utils";
+import { perfMode } from "./Engine";
 
 // --- createBalls override to update refs and state
 export function createBalls(
@@ -18,7 +19,8 @@ export function createBalls(
 ) {
   const Bodies = Matter.Bodies;
   const Composite = Matter.Composite;
-  const maxSpeed = 500;
+  // 최대 속도 제한 감소 (500 → 350)
+  const maxSpeed = perfMode.isLowPerf ? 350 : 350;
   const balls: Matter.Body[] = [];
 
   // 전역 이벤트 핸들러 등록 (공마다 등록하지 않고 한 번만 등록)
@@ -105,9 +107,16 @@ export function createBalls(
     const hue = (i * 8) % 360;
     const ballColor = `hsl(${hue}, 70%, 50%)`;
 
+    // 모바일에서 최적화된 공 속성 사용
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
     const ball = Bodies.circle(x, y, containerConfig.ballRadius, {
-      restitution: 0.9,
-      frictionAir: 0.03,
+      // 공이 더 잘 움직이고 섞이도록 물리 특성 조정 (데스크탑에서 반발력 감소)
+      restitution: isMobile ? 0.85 : 0.8, // 탄성 감소 (반발력 줄임)
+      frictionAir: isMobile ? 0.01 : 0.008, // 공기 저항 약간 증가 (속도 감소)
+      friction: isMobile ? 0.1 : 0.08, // 마찰 증가 (미끄러짐 감소)
+      density: isMobile ? 0.01 : 0.01, // 밀도 유지
+      slop: isMobile ? 0.3 : 0.05, // 충돌 허용 오차는 유지
       render: {
         fillStyle: ballColor,
         sprite: {
@@ -119,12 +128,20 @@ export function createBalls(
       collisionFilter: {
         category: 0x0001,
         mask: 0x0001 | 0x0002,
+        group: 0, // 기본 그룹
       },
     });
 
     // 각 공에 번호 할당
     const ballNumber = i + 1;
     ball.label = `${ballNumber}`;
+
+    // 공에 초기 속도 부여 - 더 활발한 움직임 보장
+    const initialVelocity = {
+      x: (Math.random() - 0.5) * 2, // -2 ~ 2 사이 랜덤 속도
+      y: (Math.random() - 0.5) * 2,
+    };
+    Matter.Body.setVelocity(ball, initialVelocity);
 
     Composite.add(engine.world, ball);
     balls.push(ball);

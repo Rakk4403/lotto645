@@ -3,6 +3,12 @@ import Matter from "matter-js";
 
 // Matter.js 엔진 타입 확장
 declare module "matter-js" {
+  interface IEngineDefinition {
+    positionCorrection?: boolean; // 위치 보정 활성화/비활성화
+    enableSleeping?: boolean; // 수면 모드 활성화/비활성화
+    constraintIterations?: number; // 제약 조건 반복 횟수
+  }
+
   interface Engine {
     // 타이밍 관련 속성
     timing?: {

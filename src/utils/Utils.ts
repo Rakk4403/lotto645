@@ -120,6 +120,8 @@ export function createCircularWallSegments({
   strokeStyle?: string;
   lineWidth?: number;
   category?: number;
+  restitution?: number;
+  friction?: number;
   mask?: number;
 }): Matter.Body[] {
   const angleStep = (2 * Math.PI) / count;

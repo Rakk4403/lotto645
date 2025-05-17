@@ -76,7 +76,7 @@ export function useWindEffect(
 
         // 바람은 항상 아래에서 위로 향함 (6시에서 중심 방향)
         let forceX = 0;
-        let forceY = -forceMagnitude;
+        const forceY = -forceMagnitude;
 
         // 약간의 중앙 수직선으로 모이는 효과 추가
         if (Math.abs(relativeX) > containerConfig.radius * 0.05) {

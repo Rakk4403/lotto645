@@ -5,6 +5,28 @@ import { BallResults } from "./BallResults";
 import { RestartButton } from "./RestartButton";
 // import { getRenderScale } from "../utils/BallUtils";
 
+// 우주 메시지를 위한 폰트 스타일 정의
+const cosmicMessageStyle = `
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&family=Quicksand:wght@300;400;500&display=swap');
+
+@keyframes cosmicPulse {
+  0% {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 20px rgba(123, 31, 162, 0.3);
+  }
+  100% {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 30px rgba(33, 150, 243, 0.6);
+  }
+}
+`;
+
+// 스타일 요소 생성 및 삽입
+const styleElement = document.createElement("style");
+styleElement.innerHTML = cosmicMessageStyle;
+document.head.appendChild(styleElement);
+
+// 콘솔 모니터링용 로그
+console.log("Cosmic message font and animation loaded");
+
 const DEFAULT_WIDTH = 1200; // 데스크탑 환경에서 더 크게 보이도록 1200으로 조정
 const DEFAULT_HEIGHT = 1200;
 
@@ -39,6 +61,41 @@ export function Machine() {
     <>
       {/* 다시 시작 버튼 */}
       <RestartButton onRestart={restartGame} show={exitedBalls.length >= 6} />
+
+      {/* 우주의 기운을 담은 메시지 */}
+      <div
+        style={{
+          position: "absolute",
+          top: isMobile ? "5%" : "7%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 10,
+          width: isMobile ? "90%" : "80%",
+          maxWidth: "800px",
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'Quicksand', 'Noto Sans KR', sans-serif",
+            fontSize: isMobile ? "16px" : "20px",
+            fontWeight: 400,
+            color: "#fff",
+            background:
+              "linear-gradient(135deg, rgba(33, 150, 243, 0.8), rgba(156, 39, 176, 0.8))",
+            padding: isMobile ? "10px 15px" : "12px 20px",
+            borderRadius: "20px",
+            boxShadow:
+              "0 4px 15px rgba(0, 0, 0, 0.2), 0 0 20px rgba(123, 31, 162, 0.5)",
+            backdropFilter: "blur(5px)",
+            border: "1px solid rgba(255, 255, 255, 0.18)",
+            textShadow: "0 1px 3px rgba(0, 0, 0, 0.4)",
+            animation: "cosmicPulse 3s infinite alternate ease-in-out",
+          }}
+        >
+          ✨ 우주의 별빛과 행운의 기운을 담아 당신만을 위한 번호를 선물합니다 ✨
+        </div>
+      </div>
 
       {/* 물리 엔진 렌더링 영역 - 시각적 스케일링만 적용 */}
       <div

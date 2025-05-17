@@ -1,0 +1,21 @@
+{
+  "name": "우주의 기운을 담아 로또 645",
+  "short_name": "로또 645",
+  "description": "우주의 기운으로 번호를 추천해주는 물리 엔진 기반 로또 645 시뮬레이터",
+  "start_url": "/lotto645/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FA4C86",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -38,6 +38,20 @@ export const BallPopup: React.FC<BallPopupProps> = ({
     return "#D3D3D3"; // 회색
   };
 
+  // 번호 복사 기능
+  const copyNumbersToClipboard = () => {
+    const numbersText = sortedBalls.join(", ");
+    navigator.clipboard
+      .writeText(numbersText)
+      .then(() => {
+        alert("번호가 클립보드에 복사되었습니다: " + numbersText);
+      })
+      .catch((error) => {
+        console.error("클립보드 복사 실패:", error);
+        alert("번호 복사에 실패했습니다. 다시 시도해주세요.");
+      });
+  };
+
   return (
     <div
       style={{
@@ -113,6 +127,39 @@ export const BallPopup: React.FC<BallPopupProps> = ({
             );
           })}
         </div>
+
+        {/* 번호 복사 버튼 */}
+        <button
+          onClick={copyNumbersToClipboard}
+          style={{
+            marginTop: "20px",
+            padding: "10px 15px",
+            backgroundColor: "#6c5ce7",
+            color: "white",
+            border: "none",
+            borderRadius: "8px",
+            fontSize: "16px",
+            fontWeight: "bold",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "20px auto 0",
+            boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
+            transition: "transform 0.2s, background-color 0.2s",
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.transform = "scale(1.05)";
+            e.currentTarget.style.backgroundColor = "#5c4dd6";
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.backgroundColor = "#6c5ce7";
+          }}
+        >
+          📋 번호 복사하기
+        </button>
+
         {/* 추천 점수 표시 영역 */}
         <div
           style={{

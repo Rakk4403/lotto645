@@ -232,6 +232,53 @@ export const RecordDialog: React.FC<RecordDialogProps> = ({
                     })}
                   </div>
 
+                  {/* 번호 복사 버튼 */}
+                  <div style={{ marginTop: "10px", textAlign: "center" }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const numbersText = record.numbers.join(", ");
+                        navigator.clipboard
+                          .writeText(numbersText)
+                          .then(() => {
+                            alert(
+                              "번호가 클립보드에 복사되었습니다: " + numbersText
+                            );
+                          })
+                          .catch((error) => {
+                            console.error("클립보드 복사 실패:", error);
+                            alert(
+                              "번호 복사에 실패했습니다. 다시 시도해주세요."
+                            );
+                          });
+                      }}
+                      style={{
+                        padding: "5px 10px",
+                        backgroundColor: "#6c5ce7",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "5px",
+                        fontSize: isMobile ? "12px" : "14px",
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        opacity: 0.9,
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.opacity = "1";
+                        e.currentTarget.style.transform = "scale(1.05)";
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.opacity = "0.9";
+                        e.currentTarget.style.transform = "scale(1)";
+                      }}
+                    >
+                      📋 번호 복사
+                    </button>
+                  </div>
+
                   {/* 삭제 버튼 (호버 시에만 표시) */}
                   {hoverRecordId === record.id && (
                     <button

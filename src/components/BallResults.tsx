@@ -12,6 +12,20 @@ export const BallResults: React.FC<BallResultsProps> = ({ drawnBalls }) => {
   // 화면 너비에 따라 스타일 조정
   const isMobile = window.innerWidth < 768;
 
+  // 번호 복사 함수
+  const copyNumbersToClipboard = () => {
+    const numbersText = sortedBalls.join(", ");
+    navigator.clipboard
+      .writeText(numbersText)
+      .then(() => {
+        alert("번호가 클립보드에 복사되었습니다: " + numbersText);
+      })
+      .catch((error) => {
+        console.error("클립보드 복사 실패:", error);
+        alert("번호 복사에 실패했습니다. 다시 시도해주세요.");
+      });
+  };
+
   return (
     <div
       style={{
@@ -53,6 +67,26 @@ export const BallResults: React.FC<BallResultsProps> = ({ drawnBalls }) => {
             {label}
           </span>
         ))}
+        <button
+          onClick={copyNumbersToClipboard}
+          style={{
+            marginLeft: "8px",
+            padding: isMobile ? "2px 5px" : "3px 8px",
+            backgroundColor: "#6c5ce7",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            fontSize: isMobile ? "10px" : "14px",
+            cursor: "pointer",
+            verticalAlign: "middle",
+            opacity: 0.9,
+            display: "inline-flex",
+            alignItems: "center",
+          }}
+          title="번호 복사하기"
+        >
+          📋
+        </button>
       </div>
     </div>
   );

@@ -23,8 +23,8 @@ export function createContainer(
   walls.forEach((wall) => {
     // 시각적 스타일
     wall.render.strokeStyle = "#5DADE2"; // 하늘색 테두리
-    wall.render.fillStyle = "rgba(212, 240, 255, 0.08)"; // 매우 연한 하늘색, 더 투명한 채움으로 겹침 효과 감소
-    wall.render.opacity = 0.8; // 불투명도 약간 감소로 겹침 효과 완화
+    wall.render.fillStyle = "#5DADE2"; // 테두리 색상으로 채움 (하늘색)
+    wall.render.opacity = 1.0; // 완전 불투명하게 설정
     wall.render.lineWidth = 1.8; // 라인 두께 약간 감소로 더 매끄러운 테두리
 
     // 물리적 속성 강화 (모바일에서는 더 강한 설정)
@@ -52,9 +52,10 @@ export function createContainer(
       mask: 0x0001,
     },
     render: {
-      fillStyle: "transparent",
+      fillStyle: "#5DADE2", // 테두리 색상과 동일하게 채움
       lineWidth: 2.0,
-      strokeStyle: "rgba(52, 152, 219, 0.7)",
+      strokeStyle: "#5DADE2",
+      opacity: 1.0, // 완전 불투명하게 설정
     },
   });
 

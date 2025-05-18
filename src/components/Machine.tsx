@@ -119,7 +119,7 @@ export function Machine() {
         }}
       >
         {/* 추첨 결과 표시 */}
-        <BallResults drawnBalls={drawnBalls} />
+        {/* <BallResults drawnBalls={drawnBalls} /> */}
         <div
           style={{
             width: isMobile

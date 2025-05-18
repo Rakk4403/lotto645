@@ -5,9 +5,9 @@ import { rotateWallSegments } from "../utils/Utils";
 const guideWallConfig = {
   wallLength: 35, // 가이드 벽 길이 살짝 감소로 겹침 감소
   wallThickness: 12, // 가이드 벽 두께 살짝 감소로 겹침 감소
-  wallColor: "rgba(155, 89, 182, 0.6)", // 불투명도 감소로 겹침 효과 완화
-  wallStrokeColor: "rgba(125, 60, 152, 0.7)", // 테두리 색상 반투명으로 부드러운 표현
-  wallOpacity: 0.7, // 불투명도 약간 감소
+  wallColor: "#7D3C98", // 완전 불투명한 보라색으로 설정
+  wallStrokeColor: "#7D3C98", // 테두리도 동일한 색상으로 설정
+  wallOpacity: 1.0, // 완전 불투명하게 설정
   lineWidth: 1.0, // 테두리 두께 감소로 더 매끄러운 표현
   wallCategory: 0x0001, // 가이드 벽 카테고리
   wallMask: 0x0001, // 가이드 벽 마스크

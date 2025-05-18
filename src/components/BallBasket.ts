@@ -35,8 +35,8 @@ export function createBasket(
     thickness: wallThickness * 0.85, // 두께를 약간 줄여 겹침 감소
     excludeStart: excludeStart,
     excludeEnd: excludeEnd,
-    fillStyle: "rgba(46, 204, 113, 0.5)", // 반투명 연두색으로 겹침 효과 완화
-    strokeStyle: "rgba(39, 174, 96, 0.7)", // 반투명 테두리로 매끄러운 표현
+    fillStyle: "#27AE60", // 완전 불투명한 녹색으로 설정
+    strokeStyle: "#27AE60", // 테두리도 동일한 색상으로 설정
     lineWidth: 1.2, // 테두리 두께 약간 감소로 더 매끄럽게
   });
 

@@ -46,14 +46,21 @@ export const BallPopup: React.FC<BallPopupProps> = ({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(0,0,0,0.7)",
+        backgroundColor: "rgba(0,0,0,0.5)", // 투명도를 0.7에서 0.5로 줄임
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        zIndex: 100,
+        zIndex: 90, // 90으로 낮춰서 RecordDialog(100)보다 뒤에 표시
+        pointerEvents: "auto", // 클릭 이벤트 처리
       }}
-      onClick={onClose}
+      onClick={(e) => {
+        // 클릭 이벤트가 팝업 외부에서 발생한 경우만 닫기
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+        // 이벤트 버블링 중지하지 않음 - 다른 요소들도 클릭할 수 있음
+      }}
     >
       <div
         style={{
@@ -64,6 +71,7 @@ export const BallPopup: React.FC<BallPopupProps> = ({
           maxWidth: "90%",
           boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
         }}
+        onClick={(e) => e.stopPropagation()} // 이벤트 버블링 방지
       >
         <h2 style={{ marginBottom: "30px", fontSize: "28px" }}>
           🎉 추첨 결과 🎉

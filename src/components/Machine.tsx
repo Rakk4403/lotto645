@@ -3,6 +3,8 @@ import { useLotteryMachine } from "../hooks/useLotteryMachine";
 import { BallPopup } from "./BallPopup";
 import { BallResults } from "./BallResults";
 import { RestartButton } from "./RestartButton";
+import { RecordButton } from "./RecordButton";
+import { RecordDialog } from "./RecordDialog";
 // import { getRenderScale } from "../utils/BallUtils";
 
 // 우주 메시지를 위한 폰트 스타일 정의
@@ -33,6 +35,8 @@ const DEFAULT_HEIGHT = 1200;
 export function Machine() {
   // 모바일 환경 감지
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  // 기록 대화상자 표시 상태 관리
+  const [showRecordDialog, setShowRecordDialog] = useState(false);
 
   // 창 크기 변경 감지
   useEffect(() => {
@@ -61,6 +65,9 @@ export function Machine() {
     <>
       {/* 다시 시작 버튼 */}
       <RestartButton onRestart={restartGame} show={exitedBalls.length >= 6} />
+
+      {/* 기록 보기 버튼 */}
+      <RecordButton onClick={() => setShowRecordDialog(true)} />
 
       {/* 우주의 기운을 담은 메시지 */}
       <div
@@ -165,6 +172,12 @@ export function Machine() {
 
       {/* 공 추첨 완료 팝업 */}
       <BallPopup balls={drawnBalls} show={showPopup} onClose={closePopup} />
+
+      {/* 기록 조회 대화상자 */}
+      <RecordDialog
+        show={showRecordDialog}
+        onClose={() => setShowRecordDialog(false)}
+      />
 
       {/* 흔들기 버튼 (모바일용) */}
       <div

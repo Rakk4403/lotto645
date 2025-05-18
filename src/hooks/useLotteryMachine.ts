@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Matter from "matter-js";
 import { setupGuideWalls } from "../components/GuideWall";
 import { createContainer } from "../components/BallContainer";
@@ -17,6 +17,7 @@ import {
 import { useWindEffect } from "./useWindEffect";
 import { createBasket } from "../components/BallBasket";
 import { useBasketSensor } from "./useBasketSensor";
+import { saveRecord } from "../utils/RecordStorage";
 
 export interface ContainerConfig {
   size: number;
@@ -45,6 +46,8 @@ export function useLotteryMachine(
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const [exitedBalls, setExitedBalls] = useState<string[]>([]);
   const [showPopup, setShowPopup] = useState<boolean>(false);
+  // 팝업이 이미 표시되었는지 추적하는 플래그 추가
+  const hasShownPopupRef = useRef<boolean>(false);
   const ballBodiesRef = useRef<Matter.Body[]>([]);
   const engineRef = useRef<Matter.Engine | null>(null);
   const containerConfigRef = useRef<ContainerConfig | null>(null);
@@ -76,16 +79,23 @@ export function useLotteryMachine(
     windControlRef.current = windControl;
   }, [windControl]);
 
-  // 모든 공이 뽑혔을 때 팝업 표시 효과
+  // 모든 공이 뽑혔을 때 팝업 표시 효과 및 결과 저장
   useEffect(() => {
-    if (exitedBalls.length >= 6) {
-      // 모든 공이 뽑힌 후 약간의 딜레이를 두고 팝업 표시
+    // 정확히 6개일 때만 저장
+    if (exitedBalls.length === 6) {
+      saveRecord([...exitedBalls]);
+    }
+
+    // 6개 이상이고 팝업이 아직 표시되지 않았을 때만 팝업 표시 (한 번만 실행)
+    if (exitedBalls.length >= 6 && !showPopup && !hasShownPopupRef.current) {
+      // 팝업 표시 플래그를 별도 ref로 관리하여 effect가 다시 실행되더라도 중복 실행 방지
       const timer = setTimeout(() => {
         setShowPopup(true);
+        hasShownPopupRef.current = true; // 팝업이 표시되었음을 기록
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [exitedBalls.length]);
+  }, [exitedBalls, showPopup]);
 
   // 팝업 닫기 기능
   const closePopup = () => {
@@ -93,7 +103,7 @@ export function useLotteryMachine(
   };
 
   // 물리 엔진 초기화
-  const initializeGame = () => {
+  const initializeGame = useCallback(() => {
     if (!sceneRef.current) return;
 
     // 이전 물리 엔진 정리
@@ -190,13 +200,15 @@ export function useLotteryMachine(
     }
 
     setExitedBalls([]); // 게임 시작 시 공 초기화
-  };
+    hasShownPopupRef.current = false; // 게임 초기화 시 팝업 표시 플래그도 초기화
+  }, [width, height, minDimension]);
 
   // 게임 재시작 함수
   const restartGame = () => {
     // 상태 초기화
     setExitedBalls([]);
     setShowPopup(false);
+    hasShownPopupRef.current = false; // 팝업 표시 플래그 초기화
 
     // 센서 핸들러 초기화
     basketSensorHandlerRef.current.reset();
@@ -254,7 +266,7 @@ export function useLotteryMachine(
       }
       window.removeEventListener("resize", handleResize);
     };
-  }, [width, height, minDimension]); // initializeGame 의존성 추가
+  }, [width, height, minDimension, initializeGame]);
 
   // Wind effect toggle based on exitedBalls
   useEffect(() => {

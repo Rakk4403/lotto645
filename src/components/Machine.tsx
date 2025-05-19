@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLotteryMachine } from "../hooks/useLotteryMachine";
 import { BallPopup } from "./BallPopup";
-import { BallResults } from "./BallResults";
 import { RestartButton } from "./RestartButton";
 import { RecordButton } from "./RecordButton";
 import { RecordDialog } from "./RecordDialog";

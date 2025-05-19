@@ -22,8 +22,8 @@ export function createContainer(
   // 각 벽 세그먼트에 강화된 물리 속성 적용
   walls.forEach((wall) => {
     // 시각적 스타일
-    wall.render.strokeStyle = "#5DADE2"; // 하늘색 테두리
-    wall.render.fillStyle = "#5DADE2"; // 테두리 색상으로 채움 (하늘색)
+    wall.render.strokeStyle = "#ADDDF2"; // 하늘색 테두리
+    wall.render.fillStyle = "#ADDDF2"; // 테두리 색상으로 채움 (하늘색)
     wall.render.opacity = 1.0; // 완전 불투명하게 설정
     wall.render.lineWidth = 1.8; // 라인 두께 약간 감소로 더 매끄러운 테두리
 
@@ -52,9 +52,9 @@ export function createContainer(
       mask: 0x0001,
     },
     render: {
-      fillStyle: "#5DADE2", // 테두리 색상과 동일하게 채움
+      fillStyle: "#ADDDF2", // 테두리 색상과 동일하게 채움
       lineWidth: 2.0,
-      strokeStyle: "#5DADE2",
+      strokeStyle: "#ADDDF2",
       opacity: 1.0, // 완전 불투명하게 설정
     },
   });

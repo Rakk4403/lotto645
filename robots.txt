@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://https://rakk4403.github.io/lotto645/sitemap.xml

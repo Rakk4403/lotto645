@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "export DOMAIN=\"https://rakk4403.github.io/lotto645\" && zsh generate-sitemap.sh",
+    "predeploy": "export DOMAIN=\"rakk4403.github.io/lotto645\" && zsh generate-sitemap.sh",
     "deploy": "npm run predeploy && tsc -b && vite build && gh-pages -d dist"
   },
   "dependencies": {
